@@ -1,0 +1,40 @@
+# Reused from ELI_v3.0: eli/coding/__init__.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+"""ELI coding agent — frontier-grade code generation, analysis & repair.
+
+A self-contained, additive subsystem implementing:
+  - structured decomposition (planner / implementer separation)   [planner.py]
+  - a mandatory execution-feedback loop                            [sandbox.py]
+  - tree/beam search over solutions with UCB-style exploration     [search.py]
+  - explicit verification gating + candidate scoring               [verification.py]
+  - automated test synthesis                                       [verification.py]
+  - patch-based incremental refinement                             [search.py]
+  - semantic bug classification                                    [bug_memory.py]
+  - long-term memory of bugs and fixes                             [bug_memory.py]
+
+The public entry point is `solve()` / `CodeAgent`. LLM-driven steps take an
+injected `generate` callable so the whole pipeline is testable without a model.
+"""
+
+from __future__ import annotations
+
+from eli_creation.coding.sandbox import run_code, RunResult, sandbox_enabled
+from eli_creation.coding.bug_memory import classify_bug, BugMemory, BugClass
+from eli_creation.coding.verification import (
+    Candidate, verify_candidate, score_candidate, synthesize_tests,
+)
+
+__all__ = [
+    "run_code", "RunResult", "sandbox_enabled",
+    "classify_bug", "BugMemory", "BugClass",
+    "Candidate", "verify_candidate", "score_candidate", "synthesize_tests",
+    "CodeAgent", "solve",
+]
+
+
+def __getattr__(name):
+    # Lazy import of the orchestrator so importing the package doesn't pull the
+    # heavier search/planner graph unless actually used.
+    if name in ("CodeAgent", "solve"):
+        from eli_creation.coding.agent import CodeAgent, solve
+        return {"CodeAgent": CodeAgent, "solve": solve}[name]
+    raise AttributeError(name)

@@ -1,0 +1,252 @@
+# Reused from ELI_v3.0: eli/coding/restricted_exec.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+"""In-process restricted execution for code-mode.
+
+Runs a SMALL model-written program *in-process* so it can call ELI's live capabilities
+(`api.*` / `execute(...)`) — which the process-isolated coding sandbox (`sandbox.run_code`)
+deliberately cannot do, because that sandbox is walled off from ELI's live state.
+
+Safety here is therefore STATIC + NAMESPACE based, not process isolation, AND gated:
+
+  1. GATE — only runs when **Full Control** is ON (`is_full_control()`, the GUI toggle).
+     Off (the default) → refuse without executing anything. Running model-written code
+     in-process is a power-user capability and lives behind the same master switch that
+     lifts ELI's other barriers.
+  2. AST WHITELIST — the program may only use a fixed set of node types, may call only
+     `api.*` / `execute(...)` + a curated safe-builtins set, and may NOT import, define
+     classes, touch dunder/underscore attributes, or name a dangerous builtin
+     (eval/exec/open/__import__/getattr/…). Anything else → rejected before execution.
+  3. RESTRICTED NAMESPACE — exec runs with `__builtins__` replaced by the safe set and only
+     `api` + `execute` injected, so even a missed static check fails closed (NameError).
+
+  4. BOUNDED RUN — the program runs under a trace function on its own frames that stops it at a
+     wall-clock deadline (eli_creation.coding.budget.Deadline, which also expires at shutdown), so a loop
+     that never ends cannot keep the turn's thread. Its `print` is a bounded one of its own (the
+     process-wide sys.stdout is never swapped, so other threads' output is not captured), and
+     `wait(seconds)` is the one way to pause, bounded by the same deadline, for polling a job.
+     A call into `api` (or one builtin call such as sum over a huge range) runs to its own end;
+     the deadline is checked on the program's next line.
+
+This module is the gate + static validator + runner only; per-call risk classification
+composes the existing `approval_engine` at the call site if desired.
+"""
+from __future__ import annotations
+
+import ast
+import sys
+import time
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, List, Optional
+
+from eli_creation.coding.budget import DEFAULT_SOLVE_BUDGET_S, Deadline
+
+_PROGRAM_FILENAME = "<eli-code-mode>"
+
+
+class ProgramStopped(Exception):
+    """Raised inside a code-mode program that ran past its deadline (or ELI is shutting down)."""
+
+# ── Safe builtins exposed to the program (curated; nothing introspective/dangerous) ──
+_SAFE_BUILTINS: Dict[str, Any] = {
+    k: __builtins__[k] if isinstance(__builtins__, dict) else getattr(__builtins__, k)
+    for k in (
+        "abs", "all", "any", "ascii", "bin", "bool", "bytes", "chr", "dict", "divmod",
+        "enumerate", "filter", "float", "format", "frozenset", "hex", "int", "isinstance",
+        "iter", "len", "list", "map", "max", "min", "next", "oct", "ord", "pow", "print",
+        "range", "repr", "reversed", "round", "set", "slice", "sorted", "str", "sum",
+        "tuple", "zip",
+    )
+}
+_SAFE_BUILTINS.update({"True": True, "False": False, "None": None})
+
+# Names that must never be referenced (escape vectors), even though they're not injected.
+_FORBIDDEN_NAMES = frozenset({
+    "eval", "exec", "compile", "open", "__import__", "input", "globals", "locals", "vars",
+    "getattr", "setattr", "delattr", "hasattr", "dir", "id", "type", "object", "super",
+    "memoryview", "breakpoint", "exit", "quit", "help", "__build_class__", "classmethod",
+    "staticmethod", "property",
+})
+
+# AST node types the program may contain (anything else is rejected outright).
+_ALLOWED_NODES: tuple = (
+    ast.Module, ast.Expr, ast.Assign, ast.AugAssign, ast.AnnAssign, ast.NamedExpr,
+    ast.If, ast.For, ast.While, ast.Break, ast.Continue, ast.Pass,
+    ast.Call, ast.keyword, ast.Attribute, ast.Name, ast.Load, ast.Store,
+    ast.Constant, ast.FormattedValue, ast.JoinedStr,
+    ast.List, ast.Tuple, ast.Dict, ast.Set, ast.Starred,
+    ast.ListComp, ast.SetComp, ast.DictComp, ast.GeneratorExp, ast.comprehension,
+    ast.BinOp, ast.UnaryOp, ast.BoolOp, ast.Compare, ast.IfExp, ast.Subscript, ast.Slice,
+    ast.And, ast.Or, ast.Not, ast.Invert, ast.UAdd, ast.USub,
+    ast.Add, ast.Sub, ast.Mult, ast.Div, ast.FloorDiv, ast.Mod, ast.Pow,
+    ast.LShift, ast.RShift, ast.BitOr, ast.BitXor, ast.BitAnd, ast.MatMult,
+    ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE, ast.Is, ast.IsNot,
+    ast.In, ast.NotIn,
+)
+# Explicitly hostile / out-of-scope nodes (clearer error than the generic whitelist reject).
+_BANNED_NODES = (
+    ast.Import, ast.ImportFrom, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef,
+    ast.Lambda, ast.Global, ast.Nonlocal, ast.With, ast.AsyncWith, ast.Try, ast.Raise,
+    ast.Delete, ast.Yield, ast.YieldFrom, ast.Await, ast.AsyncFor, ast.Return,
+)
+
+
+@dataclass
+class RestrictedResult:
+    ok: bool = False
+    blocked: bool = False              # refused by the Full Control gate
+    validation_error: str = ""         # rejected by the AST whitelist
+    runtime_error: str = ""            # raised during execution
+    result: Any = None                 # the program's `result` variable
+    stdout: str = ""
+    meta: Dict[str, Any] = field(default_factory=dict)
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "ok": self.ok, "blocked": self.blocked,
+            "validation_error": self.validation_error, "runtime_error": self.runtime_error,
+            "result": self.result, "stdout": self.stdout, "meta": self.meta,
+        }
+
+
+def validate_program(code: str, *, allowed_roots=("api", "execute")) -> Optional[str]:
+    """Return None if `code` is safe to run in the restricted namespace, else an error
+    string. Pure/static — no execution. Reusable for tests and pre-flight checks."""
+    try:
+        tree = ast.parse(code, mode="exec")
+    except SyntaxError as e:
+        return f"syntax error: {e.msg} (line {e.lineno})"
+
+    for node in ast.walk(tree):
+        if isinstance(node, _BANNED_NODES):
+            return f"disallowed construct: {type(node).__name__}"
+        if not isinstance(node, _ALLOWED_NODES):
+            return f"disallowed construct: {type(node).__name__}"
+        # No dunder / private attribute access (blocks __class__, __globals__, … escapes).
+        if isinstance(node, ast.Attribute) and node.attr.startswith("_"):
+            return f"disallowed attribute access: .{node.attr}"
+        # No dangerous builtin names, no private/dunder identifiers.
+        if isinstance(node, ast.Name):
+            if node.id in _FORBIDDEN_NAMES:
+                return f"disallowed name: {node.id}"
+            if node.id.startswith("__"):
+                return f"disallowed name: {node.id}"
+    return None
+
+
+def _bounded_print(sink: List[str], limit: int, meta: Dict[str, Any]) -> Callable[..., None]:
+    """A print() for the program: collects at most `limit` characters, notes when more was dropped."""
+    used = [0]
+
+    def _print(*args: Any, sep: str = " ", end: str = "\n", **_ignored: Any) -> None:
+        text = str(sep).join(str(a) for a in args) + str(end)
+        room = limit - used[0]
+        if room <= 0:
+            meta["stdout_truncated"] = True
+            return
+        if len(text) > room:
+            text = text[:room]
+            meta["stdout_truncated"] = True
+        sink.append(text)
+        used[0] += len(text)
+    return _print
+
+
+def _wait_helper(deadline: Deadline) -> Callable[[float], float]:
+    """wait(seconds): pause the program, never past its deadline. Returns the seconds waited."""
+    def wait(seconds: Any = 0) -> float:
+        try:
+            want = max(0.0, float(seconds))
+        except (TypeError, ValueError):
+            want = 0.0
+        start = time.monotonic()
+        until = start + min(want, deadline.remaining())
+        while not deadline.expired():
+            left = until - time.monotonic()
+            if left <= 0:
+                break
+            time.sleep(min(left, deadline.remaining()))
+        if deadline.expired():
+            raise ProgramStopped("the program ran past its time and was stopped")
+        return round(time.monotonic() - start, 3)
+    return wait
+
+
+def _deadline_tracer(deadline: Deadline) -> Callable:
+    """sys.settrace function: traces only the program's own frames and stops it at the deadline."""
+    def _local(frame, event, arg):
+        if event == "line" and deadline.expired():
+            raise ProgramStopped("the program ran past its time and was stopped")
+        return _local
+
+    def _global(frame, event, arg):
+        if frame.f_code.co_filename == _PROGRAM_FILENAME:
+            return _local
+        return None
+    return _global
+
+
+def run_restricted(
+    code: str,
+    *,
+    api: Any = None,
+    execute: Optional[Callable] = None,
+    max_stdout: int = 8000,
+    deadline: "Deadline | float | None" = None,
+) -> RestrictedResult:
+    """Gate → validate → run `code` in a restricted in-process namespace, bounded by `deadline`
+    (a Deadline or seconds; default the coding agent's DEFAULT_SOLVE_BUDGET_S).
+
+    The program should assign its answer to a variable named `result`. `api` and (if given)
+    `execute` are the only injected names besides safe builtins, `print` and `wait`.
+    """
+    # 1) Full Control gate — the master switch the user flips in the GUI.
+    try:
+        from eli.core.full_control import is_full_control
+        _fc = bool(is_full_control())
+    except Exception:
+        _fc = False
+    if not _fc:
+        return RestrictedResult(
+            ok=False, blocked=True,
+            validation_error="",
+            runtime_error="",
+            meta={"reason": "code-mode execution requires Full Control (the GUI toggle is OFF)"},
+        )
+
+    # 2) Static AST whitelist.
+    err = validate_program(code)
+    if err is not None:
+        return RestrictedResult(ok=False, validation_error=err)
+
+    # 3) Restricted namespace — only safe builtins + api/execute + the bounded print and wait.
+    limit = Deadline.coerce(deadline if deadline is not None else DEFAULT_SOLVE_BUDGET_S, label="code_mode")
+    out: List[str] = []
+    meta: Dict[str, Any] = {}
+    builtins = dict(_SAFE_BUILTINS)
+    builtins["print"] = _bounded_print(out, int(max_stdout), meta)
+    ns: Dict[str, Any] = {"__builtins__": builtins, "wait": _wait_helper(limit)}
+    if api is not None:
+        ns["api"] = api
+    if execute is not None:
+        ns["execute"] = execute
+
+    previous = sys.gettrace()
+    try:
+        compiled = compile(ast.parse(code, mode="exec"), _PROGRAM_FILENAME, "exec")
+        sys.settrace(_deadline_tracer(limit))
+        try:
+            exec(compiled, ns)  # noqa: S102 — gated + AST-whitelisted + restricted ns + deadline
+        finally:
+            sys.settrace(previous)
+    except ProgramStopped as e:
+        return RestrictedResult(ok=False, runtime_error=f"stopped: {e}", stdout="".join(out),
+                                meta={**meta, "stopped": True})
+    except Exception as e:  # the program raised
+        return RestrictedResult(
+            ok=False, runtime_error=f"{type(e).__name__}: {e}",
+            stdout="".join(out), meta=meta,
+        )
+    return RestrictedResult(
+        ok=True, result=ns.get("result"),
+        stdout="".join(out),
+        meta={**meta, "had_result": "result" in ns},
+    )

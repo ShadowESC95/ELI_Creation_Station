@@ -1,0 +1,489 @@
+{
+  "schema": 1,
+  "about": "Models Creation Station knows. role main: the one language model that stays loaded (only used on its own; opened by ELI v3, ELI v3's model is the main model). role specialist: loaded in a worker process for a job and unloaded when idle. verified: the licence is recorded by ELI already; a model is fetched only when it is verified, its licence class is permissive and its revision is pinned (models/licences.py). Within one task, entries are in order of preference: the first one this machine can run is used.",
+  "models": [
+    {
+      "id": "main.qwen3-4b",
+      "title": "Qwen3 4B Instruct (GGUF Q4_K_M)",
+      "role": "main",
+      "tasks": [
+        "text",
+        "code"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/bartowski/Qwen_Qwen3-4B-GGUF",
+      "format": "gguf",
+      "size_mb": 2500,
+      "memory_mb": 3500,
+      "ram_mb": 6000,
+      "min_tier": "T0",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "notes": "Small default for processor-only and integrated-graphics machines. Check the model card's licence at the revision pinned."
+    },
+    {
+      "id": "main.qwen3-8b",
+      "title": "Qwen3 8B (GGUF Q4_K_M)",
+      "role": "main",
+      "tasks": [
+        "text",
+        "code"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/bartowski/Qwen_Qwen3-8B-GGUF",
+      "format": "gguf",
+      "size_mb": 4800,
+      "memory_mb": 6500,
+      "ram_mb": 10000,
+      "min_tier": "T2",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "notes": "Also in ELI v3's model catalogue."
+    },
+    {
+      "id": "main.phi-4",
+      "title": "Phi-4 14B (GGUF Q4_K_M)",
+      "role": "main",
+      "tasks": [
+        "text",
+        "code"
+      ],
+      "licence": "MIT",
+      "verified": false,
+      "source": "https://huggingface.co/bartowski/phi-4-GGUF",
+      "format": "gguf",
+      "size_mb": 8600,
+      "memory_mb": 10500,
+      "ram_mb": 16000,
+      "min_tier": "T3",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "notes": "Also in ELI v3's model catalogue."
+    },
+    {
+      "id": "main.qwen3.6-35b-a3b",
+      "title": "Qwen3.6 35B-A3B MoE (GGUF UD-Q4_K_M)",
+      "role": "main",
+      "tasks": [
+        "text",
+        "code"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/unsloth/Qwen3.6-35B-A3B-GGUF",
+      "format": "gguf",
+      "size_mb": 21000,
+      "memory_mb": 24000,
+      "ram_mb": 32000,
+      "min_tier": "T4",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "notes": "Also in ELI v3's model catalogue."
+    },
+    {
+      "id": "image.ssd-1b",
+      "title": "SSD-1B (distilled SDXL), diffusers",
+      "role": "specialist",
+      "tasks": [
+        "image"
+      ],
+      "licence": "Apache-2.0",
+      "verified": true,
+      "source": "https://huggingface.co/segmind/SSD-1B",
+      "format": "diffusers",
+      "size_mb": 4600,
+      "memory_mb": 6000,
+      "ram_mb": 12000,
+      "min_tier": "T2",
+      "backends": [
+        "cuda",
+        "rocm",
+        "mps",
+        "xpu"
+      ],
+      "cpu_ok": true,
+      "adapter": "eli_creation.engines.adapters.diffusers_image:DiffusersImage",
+      "runtime": "torch",
+      "notes": "The image model ELI v3 already fetches (models/MODEL_LICENSES.md there). Pin a revision before release."
+    },
+    {
+      "id": "image.ssd-1b-sdcpp",
+      "title": "SSD-1B, quantized, through stable-diffusion.cpp",
+      "role": "specialist",
+      "tasks": [
+        "image"
+      ],
+      "licence": "Apache-2.0",
+      "verified": true,
+      "source": "https://huggingface.co/segmind/SSD-1B",
+      "format": "sdcpp",
+      "size_mb": 2600,
+      "memory_mb": 3500,
+      "ram_mb": 8000,
+      "min_tier": "T1",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan"
+      ],
+      "cpu_ok": true,
+      "adapter": "eli_creation.engines.adapters.sdcpp_image:SdCppImage",
+      "runtime": "sdcpp",
+      "notes": "One engine for NVIDIA, AMD, Intel and Apple through Vulkan or Metal, with no PyTorch: the route for Windows AMD and Intel and for integrated graphics. Confirm stable-diffusion.cpp supports this model at the version pinned. Its adapter (stable-diffusion.cpp's program in a worker) comes in a later release.",
+      "status": "planned"
+    },
+    {
+      "id": "image.flux1-schnell-sdcpp",
+      "title": "FLUX.1 [schnell], quantized, through stable-diffusion.cpp",
+      "role": "specialist",
+      "tasks": [
+        "image"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/black-forest-labs/FLUX.1-schnell",
+      "format": "sdcpp",
+      "size_mb": 12000,
+      "memory_mb": 12500,
+      "ram_mb": 24000,
+      "min_tier": "T3",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan"
+      ],
+      "cpu_ok": false,
+      "adapter": "eli_creation.engines.adapters.sdcpp_image:SdCppImage",
+      "runtime": "sdcpp",
+      "notes": "schnell only: FLUX.1 [dev] is non-commercial (see excluded). Its adapter (stable-diffusion.cpp's program in a worker) comes in a later release.",
+      "status": "planned"
+    },
+    {
+      "id": "upscale.realesrgan-x4",
+      "title": "Real-ESRGAN x4",
+      "role": "specialist",
+      "tasks": [
+        "upscale"
+      ],
+      "licence": "BSD-3-Clause",
+      "verified": false,
+      "source": "https://github.com/xinntao/Real-ESRGAN",
+      "format": "onnx",
+      "size_mb": 70,
+      "memory_mb": 1500,
+      "ram_mb": 4000,
+      "min_tier": "T0",
+      "backends": [
+        "cuda",
+        "rocm",
+        "directml",
+        "metal"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "For the Editing tab."
+    },
+    {
+      "id": "background.birefnet",
+      "title": "BiRefNet (background removal)",
+      "role": "specialist",
+      "tasks": [
+        "background_removal"
+      ],
+      "licence": "MIT",
+      "verified": false,
+      "source": "https://huggingface.co/ZhengPeng7/BiRefNet",
+      "format": "onnx",
+      "size_mb": 900,
+      "memory_mb": 2500,
+      "ram_mb": 6000,
+      "min_tier": "T0",
+      "backends": [
+        "cuda",
+        "rocm",
+        "directml",
+        "metal"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "For the Editing tab."
+    },
+    {
+      "id": "video.wan2.1-t2v-1.3b",
+      "title": "Wan 2.1 text-to-video 1.3B",
+      "role": "specialist",
+      "tasks": [
+        "video"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/Wan-AI/Wan2.1-T2V-1.3B",
+      "format": "diffusers",
+      "size_mb": 17000,
+      "memory_mb": 8500,
+      "ram_mb": 24000,
+      "min_tier": "T2",
+      "backends": [
+        "cuda",
+        "rocm"
+      ],
+      "cpu_ok": false,
+      "status": "planned",
+      "notes": "For the Videos tab. Its own card states about 8 GB of graphics memory at 480p with offloading."
+    },
+    {
+      "id": "music.ace-step-v1-3.5b",
+      "title": "ACE-Step v1 3.5B (music)",
+      "role": "specialist",
+      "tasks": [
+        "music"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/ACE-Step/ACE-Step-v1-3.5B",
+      "format": "torch",
+      "size_mb": 8000,
+      "memory_mb": 8000,
+      "ram_mb": 16000,
+      "min_tier": "T3",
+      "backends": [
+        "cuda",
+        "rocm",
+        "mps"
+      ],
+      "cpu_ok": false,
+      "status": "planned",
+      "notes": "Soundtracks for the Videos tab, sound for the Games tab."
+    },
+    {
+      "id": "speech.kokoro-82m",
+      "title": "Kokoro-82M (narration)",
+      "role": "specialist",
+      "tasks": [
+        "speech"
+      ],
+      "licence": "Apache-2.0",
+      "verified": true,
+      "source": "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX",
+      "revision": "1939ad2a8e416c0acfeecc08a694d14ef25f2231",
+      "format": "onnx",
+      "size_mb": 350,
+      "memory_mb": 600,
+      "ram_mb": 2000,
+      "min_tier": "T0",
+      "backends": [
+        "cuda",
+        "directml",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "ELI v3's own voice, at the revision ELI v3 pins. Opened by ELI v3, ELI v3's voice is used instead."
+    },
+    {
+      "id": "3d.trellis-image-large",
+      "title": "TRELLIS image-to-3D (large)",
+      "role": "specialist",
+      "tasks": [
+        "3d"
+      ],
+      "licence": "MIT",
+      "verified": false,
+      "source": "https://huggingface.co/microsoft/TRELLIS-image-large",
+      "format": "torch",
+      "size_mb": 4500,
+      "memory_mb": 16000,
+      "ram_mb": 24000,
+      "min_tier": "T3",
+      "backends": [
+        "cuda"
+      ],
+      "cpu_ok": false,
+      "status": "planned",
+      "notes": "Game assets and ELI VR props for the Games tab."
+    },
+    {
+      "id": "code.qwen2.5-coder-7b",
+      "title": "Qwen2.5-Coder 7B Instruct (GGUF)",
+      "role": "specialist",
+      "tasks": [
+        "code"
+      ],
+      "licence": "Apache-2.0",
+      "verified": false,
+      "source": "https://huggingface.co/Qwen/Qwen2.5-Coder-7B-Instruct-GGUF",
+      "format": "gguf",
+      "size_mb": 4700,
+      "memory_mb": 6000,
+      "ram_mb": 10000,
+      "min_tier": "T2",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "Optional for the Coding tab; the main model codes without it. The 7B is Apache-2.0; other sizes of the family are not all (check each)."
+    },
+    {
+      "id": "embed.nomic-embed-text-v1.5",
+      "title": "nomic-embed-text v1.5 (GGUF)",
+      "role": "specialist",
+      "tasks": [
+        "embed"
+      ],
+      "licence": "Apache-2.0",
+      "verified": true,
+      "source": "https://huggingface.co/nomic-ai/nomic-embed-text-v1.5-GGUF",
+      "format": "gguf",
+      "size_mb": 85,
+      "memory_mb": 300,
+      "ram_mb": 600,
+      "min_tier": "T0",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "ELI v3's own embedder (it bundles it); found in ELI v3's models/embeddings when ELI v3 is installed. Searching the library by meaning."
+    },
+    {
+      "id": "vision.qwen2.5-vl-7b",
+      "title": "Qwen2.5-VL 7B Instruct (GGUF) and its projector",
+      "role": "specialist",
+      "tasks": [
+        "vision"
+      ],
+      "licence": "Apache-2.0",
+      "verified": true,
+      "source": "https://huggingface.co/unsloth/Qwen2.5-VL-7B-Instruct-GGUF",
+      "format": "gguf",
+      "size_mb": 6000,
+      "memory_mb": 7000,
+      "ram_mb": 12000,
+      "min_tier": "T2",
+      "backends": [
+        "cuda",
+        "rocm",
+        "metal",
+        "vulkan"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "ELI v3's vision model (models/vision there). Reading the screen and describing images for ELI in the studio. Opened by ELI v3, ELI v3's own vision is used."
+    },
+    {
+      "id": "transcription.faster-whisper-small.en",
+      "title": "faster-whisper small.en",
+      "role": "specialist",
+      "tasks": [
+        "transcription"
+      ],
+      "licence": "MIT",
+      "verified": true,
+      "source": "https://huggingface.co/Systran/faster-whisper-small.en",
+      "format": "ctranslate2",
+      "size_mb": 480,
+      "memory_mb": 1000,
+      "ram_mb": 2000,
+      "min_tier": "T0",
+      "backends": [
+        "cuda",
+        "cpu"
+      ],
+      "cpu_ok": true,
+      "status": "planned",
+      "notes": "ELI v3's speech model (models/whisper there). Captions and subtitles for the Videos tab."
+    }
+  ],
+  "excluded": [
+    {
+      "match": "black-forest-labs/FLUX.1-dev",
+      "licence": "FLUX.1 [dev] Non-Commercial License",
+      "class": "non-commercial",
+      "why": "Outputs may not be used commercially."
+    },
+    {
+      "match": "facebook/musicgen",
+      "licence": "CC-BY-NC-4.0 (weights)",
+      "class": "non-commercial",
+      "why": "The weights are non-commercial."
+    },
+    {
+      "match": "stabilityai/stable-diffusion-3.5",
+      "licence": "Stability AI Community License",
+      "class": "custom",
+      "why": "A revenue threshold above which a separate licence is needed: ELI cannot accept it for every buyer."
+    },
+    {
+      "match": "stabilityai/stable-audio-open",
+      "licence": "Stability AI Community License",
+      "class": "custom",
+      "why": "As above."
+    },
+    {
+      "match": "stabilityai/sdxl-turbo",
+      "licence": "Stability AI non-commercial research licence",
+      "class": "non-commercial",
+      "why": "Non-commercial."
+    },
+    {
+      "match": "stabilityai/sd-turbo",
+      "licence": "Stability AI non-commercial research licence",
+      "class": "non-commercial",
+      "why": "Non-commercial."
+    },
+    {
+      "match": "tencent/Hunyuan",
+      "licence": "Tencent Hunyuan Community License",
+      "class": "territory",
+      "why": "Excludes the European Union, the United Kingdom and South Korea: it cannot be offered from or to the EU."
+    },
+    {
+      "match": "Qwen/Qwen2.5-3B",
+      "licence": "Qwen Research License",
+      "class": "non-commercial",
+      "why": "Research licence; not every Qwen size is Apache-2.0."
+    },
+    {
+      "match": "coqui/XTTS-v2",
+      "licence": "Coqui Public Model License",
+      "class": "non-commercial",
+      "why": "Removed from ELI v3 for this reason."
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "eli-creation"
+dynamic = ["version"]
+description = "ELI Creation Station: a local studio for socials, images, video, games, editing and code, on ELI's core"
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [{ name = "ShadowESC95", email = "jaybridgeman0095@gmail.com" }]
+dependencies = [
+  # eli-sdk is private: builds fetch its wheel with scripts/fetch_eli_sdk.py (PIP_FIND_LINKS).
+  "eli-sdk==1.3.0",
+  # Images: the procedural engine, editing, thumbnails and the AI-content marking (HPND).
+  "Pillow>=10.3",
+  # Memory and processor figures read the same way on every system, for the hardware tiers (BSD-3-Clause).
+  "psutil>=5.9",
+]
+
+[project.optional-dependencies]
+gui = [
+  "PySide6>=6.6",
+]
+# Runs a GGUF main model in process with llama.cpp, as ELI v3 and ELI Legal do. It is compiled on
+# install where no prebuilt wheel exists, which needs CMake and a C/C++ compiler.
+gguf = [
+  "llama-cpp-python>=0.3",
+]
+# What an installed copy ships with.
+all = [
+  "PySide6>=6.6",
+]
+dev = [
+  "pytest>=8.2,<10",
+  "pytest-cov>=5,<8",
+  "ruff>=0.6,<1",
+  "mypy>=1.11,<2",
+]
+build = [
+  "pyinstaller>=6.10",
+]
+
+[project.scripts]
+eli-creation = "eli_creation.cli:main"
+
+[project.gui-scripts]
+eli-creation-gui = "eli_creation.gui.app:main"
+
+# How ELI v3 finds this edition once the package is installed beside it.
+[project.entry-points."eli.editions"]
+creation = "eli_creation.edition:register"
+
+# How ELI v3 finds ELI Creation Station as a bundle it can open in place of its own window.
+[project.entry-points."eli.bundles"]
+creation = "eli_creation.bundle:describe"
+
+[tool.setuptools.dynamic]
+version = { attr = "eli_creation.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+eli_creation = [
+  "edition/*.json",
+  "edition/personas/*.json",
+  "edition/templates/*.json",
+  "models/*.json",
+  "gui/assets/*.png",
+  "engines/templates/*.html",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+# ELI v3's own modules, copied unchanged (reuse.json): they follow ELI v3's style, and a change to
+# them is made in ELI v3 and synced, never here.
+extend-exclude = [
+  "src/eli_creation/coding",
+  "src/eli_creation/engines/image_engine",
+  "src/eli_creation/companion/screen_analysis.py",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.10"
+mypy_path = "src"
+files = ["src/eli_creation"]
+explicit_package_bases = true
+check_untyped_defs = true
+ignore_missing_imports = true
+
+# ELI v3's own modules, copied unchanged (see [tool.ruff]).
+[[tool.mypy.overrides]]
+module = ["eli_creation.coding.*", "eli_creation.engines.image_engine.*", "eli_creation.companion.screen_analysis"]
+ignore_errors = true

@@ -1,0 +1,30 @@
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.env
+
+# What a source checkout keeps beside the code when it runs (an installed copy keeps it in the
+# user's data folder): never committed.
+/data/
+/settings.json
+/projects/
+/library/
+/outputs/
+/models/
+/jobs/
+/logs/
+/provenance/
+/secrets/
+/runtime/
+
+# Notes kept only on this machine
+private/

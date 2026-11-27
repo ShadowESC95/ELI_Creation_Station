@@ -1,0 +1,34 @@
+ELI Creation Station
+
+A local studio for platform content, images, video, games and code, with ELI
+beside you on the project. Everything is made on this machine.
+
+What this installer does
+  - Puts the program in the folder you choose.
+  - Adds a menu entry and the commands "eli-creation" and "eli-creation-gui".
+  - Touches nothing else. It does not start a service, open a network port or
+    contact any server.
+
+Where your data is kept
+  Projects, outputs, models and the provenance ledger are kept in your own user
+  data folder, separate from the program:
+    Linux    ~/.local/share/eli-creation
+    Windows  %LOCALAPPDATA%\ELI Creation Station
+    macOS    ~/Library/Application Support/ELI Creation Station
+  Removing the program never removes that folder. Models are large: the models
+  folder holds one subfolder per kind (llm, image, video, speech, ...), each
+  model with its licence beside it.
+
+Starting it
+  The desktop application: your applications menu (ELI Creation Station), or
+  "eli-creation-gui". The command line: "eli-creation --help". An installed
+  copy runs a seven-day trial from its first use; after it, a licence key.
+
+What it makes
+  Every image, video and text a model makes carries a machine-readable note
+  that it was made by AI, and every output's models and their licences are
+  recorded. A model you bring yourself keeps its own licence; what it makes
+  carries that licence's limits.
+
+Third-party software included with this program is listed, with its licences,
+in THIRD_PARTY_NOTICES.md in the installation folder.

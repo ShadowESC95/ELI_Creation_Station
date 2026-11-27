@@ -1,0 +1,3 @@
+# Known vulnerabilities the release's pip-audit gate lets through, each with its reason.
+# One per line: <vulnerability id>  <why it does not affect ELI Creation Station as shipped>
+# Review every entry at each release; remove it as soon as a fixed version exists.

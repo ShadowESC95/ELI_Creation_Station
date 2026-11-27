@@ -1,0 +1,12 @@
+# Adapted from ELI_Legal: packaging/eli-legal.desktop @ 3b05ccd88f. Edited for ELI Creation Station; scripts/sync_reused.py --check says when the original changes.
+[Desktop Entry]
+Type=Application
+Name=ELI Creation Station
+GenericName=Creative studio
+Comment=Platform content, images, video, games and code, with ELI beside you
+Exec=@INSTALL_DIR@/eli-creation-gui
+Icon=@INSTALL_DIR@/src/eli_creation/gui/assets/eli_creation_256.png
+Path=@INSTALL_DIR@
+Terminal=false
+Categories=Graphics;AudioVideo;Development;
+StartupWMClass=ELI Creation Station

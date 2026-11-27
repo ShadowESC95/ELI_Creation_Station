@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>creation.eli.desktop</id>
+  <name>ELI Creation Station</name>
+  <summary>A local studio for platform content, images, video, games and code</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>LicenseRef-proprietary</project_license>
+  <description>
+    <p>Posts for each platform, images, videos, games and code, made on this machine with ELI beside you on the project. Specialist models load only for the job that needs them; one main model stays loaded.</p>
+    <p>Every output's models and licences are recorded, and what a model makes is marked as AI-generated in the file.</p>
+  </description>
+  <launchable type="desktop-id">eli-creation.desktop</launchable>
+  <categories>
+    <category>Graphics</category>
+    <category>AudioVideo</category>
+    <category>Development</category>
+  </categories>
+  <releases>
+    <release version="@VERSION@" date="@DATE@"/>
+  </releases>
+  <content_rating type="oars-1.1"/>
+</component>

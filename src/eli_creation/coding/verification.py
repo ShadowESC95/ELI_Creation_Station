@@ -1,0 +1,410 @@
+# Reused from ELI_v3.0: eli/coding/verification.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+"""Explicit verification gating, candidate scoring, and test synthesis.
+
+A `Candidate` is one proposed solution. `verify_candidate` runs it through
+staged gates — syntax → execution → tests — populating verdicts and a semantic
+diagnosis on failure. `score_candidate` turns the verdicts into a single 0..1
+score the search uses to rank/expand. `synthesize_tests` produces an executable
+test harness (LLM-driven, with a deterministic smoke fallback).
+
+The gates are *explicit*: a candidate that fails an earlier gate is not run
+through later ones, and its failure (traceback tail + bug class) becomes repair
+feedback for the next generation.
+"""
+
+from __future__ import annotations
+
+import ast
+import builtins as _builtins_mod
+import itertools
+import re
+import symtable
+from dataclasses import dataclass, field
+from typing import Any, Callable, Dict, Optional
+
+from eli_creation.coding.sandbox import run_code, RunResult
+from eli_creation.coding.bug_memory import classify_bug, BugDiagnosis
+from logging import getLogger as get_logger
+
+log = get_logger(__name__)
+
+_id_counter = itertools.count(1)
+
+# A synthesised test harness must print this line; <p>/<t> = passed/total.
+_TEST_RESULT_RE = re.compile(r"ELI_TESTS:\s*(\d+)\s*/\s*(\d+)")
+
+GenerateFn = Callable[..., str]
+
+
+@dataclass
+class Candidate:
+    code: str
+    language: str = "python"
+    origin: str = "implementer"          # implementer | refine | seed
+    parent_id: Optional[int] = None
+    id: int = field(default_factory=lambda: next(_id_counter))
+
+    # verdicts (None = gate not reached)
+    syntax_ok: Optional[bool] = None
+    runs_clean: Optional[bool] = None
+    tests_total: int = 0
+    tests_passed: int = 0
+    score: float = 0.0
+    gate_failed: str = ""                 # which gate stopped it
+    run_result: Optional[RunResult] = None
+    diagnosis: Optional[BugDiagnosis] = None
+    feedback: str = ""                    # repair feedback for the next attempt
+
+    def summary(self) -> Dict[str, Any]:
+        return {
+            "id": self.id, "origin": self.origin, "parent_id": self.parent_id,
+            "syntax_ok": self.syntax_ok, "runs_clean": self.runs_clean,
+            "tests": f"{self.tests_passed}/{self.tests_total}", "score": round(self.score, 3),
+            "gate_failed": self.gate_failed,
+            "bug_class": self.diagnosis.bug_class.value if self.diagnosis else None,
+        }
+
+
+def _python_syntax_ok(code: str) -> tuple[bool, str]:
+    try:
+        ast.parse(code)
+        return True, ""
+    except SyntaxError as e:
+        return False, f"SyntaxError: {e.msg} (line {e.lineno})"
+
+
+def _quality_signals(code: str) -> float:
+    """Light static quality score in [0,1]: decomposition, substance, no stubs."""
+    s = 0.0
+    if re.search(r"^\s*def\s+\w+", code, re.MULTILINE):
+        s += 0.4
+    if len(re.findall(r"^\s*def\s+\w+", code, re.MULTILINE)) >= 2:
+        s += 0.2
+    real = [l for l in code.splitlines() if l.strip() and not l.strip().startswith("#")]
+    if len(real) >= 8:
+        s += 0.2
+    if not re.search(r"\b(TODO|FIXME|placeholder|NotImplemented|pass\s*$)", code):
+        s += 0.2
+    return min(1.0, s)
+
+
+def _symtable_undefined_lines(code: str) -> list[tuple[int, str]]:
+    """Conservative stdlib fallback when pyflakes is not installed."""
+    _builtins = set(dir(_builtins_mod))
+    try:
+        mod = symtable.symtable(code, "<candidate>", "exec")
+        tree = ast.parse(code)
+    except Exception:
+        return []
+
+    undefined: set[str] = set()
+
+    def _walk(table: symtable.SymbolTable, mod_table: symtable.SymbolTable) -> None:
+        for name in table.get_identifiers():
+            try:
+                loc = table.lookup(name)
+            except KeyError:
+                if name not in _builtins and not name.startswith("_"):
+                    undefined.add(name)
+                continue
+            if loc.is_parameter() or loc.is_local() or loc.is_imported():
+                continue
+            if loc.is_global():
+                try:
+                    mod_table.lookup(name)
+                except KeyError:
+                    if name not in _builtins and not name.startswith("_"):
+                        undefined.add(name)
+        for child in table.get_children():
+            _walk(child, mod_table)
+
+    _walk(mod, mod)
+    if not undefined:
+        return []
+    hits: list[tuple[int, str]] = []
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Name) and isinstance(node.ctx, ast.Load) and node.id in undefined:
+            hits.append((int(node.lineno), node.id))
+    return sorted(set(hits))
+
+
+def pyflakes_messages(source: str, filename: str = "<candidate>") -> Optional[list[tuple[int, str]]]:
+    """pyflakes' findings for `source` as (line, message), or None when pyflakes is not installed
+    or could not check it. Star-import noise ("may be undefined, or defined from star imports",
+    "unable to detect undefined names") is dropped: a file using `from X import *` makes pyflakes
+    flag every unresolved name, and those are not bugs. The one pyflakes wrapper (the code
+    examiner's tier-2 lint reads the same)."""
+    try:
+        from pyflakes.api import check as _pf_check
+        from pyflakes.reporter import Reporter
+    except Exception:
+        return None
+    import io as _io
+    out, err = _io.StringIO(), _io.StringIO()
+    try:
+        _pf_check(source, filename, Reporter(out, err))
+    except Exception:
+        return None
+    found: list[tuple[int, str]] = []
+    for line in (out.getvalue() or "").splitlines():
+        m = re.match(rf"{re.escape(filename)}:(\d+):(?:\d+:)?\s*(.+)", line)
+        if not m:
+            continue
+        msg = m.group(2).strip()
+        if ("may be undefined, or defined from star imports" in msg
+                or "unable to detect undefined names" in msg):
+            continue
+        found.append((int(m.group(1)), msg))
+    return found
+
+
+def _static_lint(code: str) -> tuple[list[str], list[str]]:
+    """Run pyflakes on `code` → (errors, warnings). 'errors' are correctness problems
+    (undefined name, redefinition, duplicate arg, bad f-string) that PASS syntax AND run
+    clean in isolation but break callers — the bad-patch class execution alone misses
+    (e.g. `import tempfile as t` then using `tempfile`). Falls back to symtable when
+    pyflakes is unavailable so redistribution installs still catch the bad-patch class."""
+    found = pyflakes_messages(code)
+    if found is None:
+        fallback = [f"line {ln}: undefined name '{name}'"
+                    for ln, name in _symtable_undefined_lines(code)]
+        return fallback, []
+    errors, warnings = [], []
+    for ln, msg in found:
+        entry = f"line {ln}: {msg}"
+        if any(k in msg for k in ("undefined name", "redefinition", "duplicate argument",
+                                  "used prior to global", "f-string")):
+            errors.append(entry)
+        else:
+            warnings.append(entry)  # unused imports/vars etc. — informational, non-fatal
+    return errors, warnings
+
+
+def verify_candidate(cand: Candidate, *, tests: Optional[str] = None,
+                     run_timeout: float = 20.0, require_run: bool = True) -> Candidate:
+    """Run the explicit gate ladder, populating the candidate's verdicts."""
+    # Gate 1 — syntax (Python; other langs defer to execution)
+    if cand.language == "python":
+        ok, detail = _python_syntax_ok(cand.code)
+        cand.syntax_ok = ok
+        if not ok:
+            cand.gate_failed = "syntax"
+            cand.diagnosis = classify_bug(traceback_text=detail)
+            cand.feedback = f"syntax error: {detail}"
+            cand.score = score_candidate(cand)
+            return cand
+        # Gate 1.5 — static lint: reject correctness errors that pass syntax + execution.
+        _lint_errs, _ = _static_lint(cand.code)
+        if _lint_errs:
+            cand.gate_failed = "lint"
+            cand.diagnosis = classify_bug(message="; ".join(_lint_errs[:3]), code=cand.code)
+            cand.feedback = ("static analysis (pyflakes) found correctness errors — "
+                             "fix these exactly:\n- " + "\n- ".join(_lint_errs[:6]))
+            cand.score = score_candidate(cand)
+            return cand
+    else:
+        cand.syntax_ok = None
+
+    # Gate 2 — execution feedback (mandatory). Tri-state: an inconclusive run (timeout, budget kill,
+    # nothing could start it) is neither a pass nor a crash, and earns no execution credit.
+    if require_run:
+        res = run_code(cand.code, cand.language, timeout=run_timeout)
+        cand.run_result = res
+        cand.runs_clean = {"passed": True, "failed": False}.get(res.verdict)
+        if res.crashed:
+            cand.gate_failed = "execution"
+            cand.diagnosis = classify_bug(traceback_text=res.traceback_tail,
+                                          code=cand.code, timed_out=res.timed_out)
+            cand.feedback = (f"runtime crash ({cand.diagnosis.bug_class.value}): "
+                             f"{res.traceback_tail}\nhint: {cand.diagnosis.hint}")
+            cand.score = score_candidate(cand)
+            return cand
+
+    # Gate 3 — tests (if synthesised)
+    if tests:
+        res_t = run_code(tests, "python", timeout=run_timeout,
+                         extra_files={"candidate.py": cand.code}, entry_name="run_tests")
+        passed, total = _parse_test_result(res_t)
+        cand.tests_total, cand.tests_passed = total, passed
+        if total and passed < total:
+            cand.gate_failed = "tests"
+            cand.diagnosis = classify_bug(traceback_text=res_t.traceback_tail or res_t.stderr,
+                                          code=cand.code, message=f"{passed}/{total} tests passed")
+            cand.feedback = (f"{total - passed}/{total} tests failed. "
+                             f"{res_t.stdout[-600:]}\n{res_t.traceback_tail}")
+
+    cand.score = score_candidate(cand)
+    return cand
+
+
+def _parse_test_result(res: RunResult) -> tuple[int, int]:
+    m = _TEST_RESULT_RE.search((res.stdout or "") + "\n" + (res.stderr or ""))
+    if m:
+        return int(m.group(1)), int(m.group(2))
+    # No ELI_TESTS: marker means the harness never reported; absence of failure is not a pass.
+    return (0, 1)
+
+
+def score_candidate(cand: Candidate) -> float:
+    """Aggregate 0..1 score. Weights shift toward whatever evidence exists:
+    tests dominate when present; otherwise clean execution dominates."""
+    # Syntactically broken code can never be the "best" candidate — hard-cap it
+    # so a valid-but-untested candidate always beats an un-parseable one (and so
+    # a broken script is never shipped as a deliverable).
+    if cand.syntax_ok is False:
+        return 0.05
+    syntax = 1.0 if cand.syntax_ok else 0.5
+    # None = the run showed nothing (inconclusive / not run): half credit, so without tests such a
+    # candidate stays well below a clean exit and can never reach a "solved" target.
+    runs = 1.0 if cand.runs_clean else (0.0 if cand.runs_clean is False else 0.5)
+    quality = _quality_signals(cand.code)
+
+    if cand.tests_total > 0:
+        test_ratio = cand.tests_passed / cand.tests_total
+        return round(0.10 * syntax + 0.25 * runs + 0.55 * test_ratio + 0.10 * quality, 4)
+    return round(0.20 * syntax + 0.60 * runs + 0.20 * quality, 4)
+
+
+# ── Test synthesis ───────────────────────────────────────────────────────────
+
+_TEST_HARNESS_RULES = (
+    "Write a SELF-CONTAINED Python test harness that imports the candidate "
+    "module `import candidate` (the solution is saved as candidate.py in the same "
+    "directory) and exercises its public functions.\n"
+    "HARD RULES:\n"
+    "- Output ONLY raw Python, no markdown, no prose.\n"
+    "- Use plain asserts in small test functions named test_*.\n"
+    "- At the end, run every test_* function, count passes/failures, and print "
+    "EXACTLY one line `ELI_TESTS: <passed>/<total>` then `sys.exit(0 if passed==total else 1)`.\n"
+    "- Catch each test's exceptions so one failure doesn't abort the count.\n"
+    "- Test real behaviour and edge cases (empty input, None, boundaries), not trivial truths.\n"
+)
+
+
+def _deterministic_smoke_harness() -> str:
+    """Fallback harness: import the candidate and run a no-arg main()/first
+    callable if present. Proves the module loads and a primary entry executes."""
+    return (
+        "import sys, importlib, inspect\n"
+        "p = 0; t = 1\n"
+        "try:\n"
+        "    m = importlib.import_module('candidate')\n"
+        "    fn = getattr(m, 'main', None)\n"
+        "    if fn is None:\n"
+        "        fns = [f for _, f in inspect.getmembers(m, inspect.isfunction)\n"
+        "               if f.__module__ == 'candidate' and not _.startswith('_')]\n"
+        "        fn = fns[0] if fns else None\n"
+        "    if fn is not None:\n"
+        "        try:\n"
+        "            fn() if not [q for q in inspect.signature(fn).parameters.values()\n"
+        "                         if q.default is inspect._empty and q.kind in (q.POSITIONAL_ONLY, q.POSITIONAL_OR_KEYWORD)] else None\n"
+        "        except TypeError:\n"
+        "            pass\n"
+        "    p = 1\n"
+        "except Exception:\n"
+        "    import traceback; traceback.print_exc(); p = 0\n"
+        "print(f'ELI_TESTS: {p}/{t}')\n"
+        "sys.exit(0 if p == t else 1)\n"
+    )
+
+
+# Appended to a model-written harness that never reports its own count: it runs every test_*
+# function the harness defines (those that take no arguments) and prints the REAL pass/total.
+_ELI_TEST_RUNNER = (
+    "\n\n# --- ELI test runner: the harness did not report a count ---\n"
+    "import inspect as _eli_inspect, sys as _eli_sys, traceback as _eli_tb\n"
+    "_eli_tests = [_f for _n, _f in list(globals().items())\n"
+    "              if _n.startswith('test') and _eli_inspect.isfunction(_f)\n"
+    "              and not [_q for _q in _eli_inspect.signature(_f).parameters.values()\n"
+    "                       if _q.default is _q.empty and _q.kind in (_q.POSITIONAL_ONLY, _q.POSITIONAL_OR_KEYWORD)]]\n"
+    "_eli_passed = 0\n"
+    "for _eli_f in _eli_tests:\n"
+    "    try:\n"
+    "        _eli_f()\n"
+    "        _eli_passed += 1\n"
+    "    except Exception:\n"
+    "        _eli_tb.print_exc()\n"
+    "print(f'ELI_TESTS: {_eli_passed}/{len(_eli_tests)}')\n"
+    "_eli_sys.exit(0 if _eli_tests and _eli_passed == len(_eli_tests) else 1)\n"
+)
+
+
+def _runnable_test_functions(harness: str) -> list:
+    """Names of the top-level test_* functions a harness defines that can be called with no
+    arguments (pytest fixtures cannot be supplied here)."""
+    names = []
+    for node in ast.parse(harness).body:
+        if isinstance(node, ast.FunctionDef) and node.name.startswith("test"):
+            a = node.args
+            required = len(a.posonlyargs) + len(a.args) - len(a.defaults)
+            if required <= 0:
+                names.append(node.name)
+    return names
+
+
+def synthesize_tests(task: str, code: str, generate: Optional[GenerateFn] = None,
+                     *, max_tokens: int = 1200) -> str:
+    """Produce an executable test harness for `code`. Uses the LLM `generate`
+    callable when supplied (and validates the output parses); otherwise — or on
+    any failure — returns the deterministic smoke harness."""
+    if generate is None:
+        return _deterministic_smoke_harness()
+    prompt = (
+        f"TASK THE CANDIDATE SOLVES:\n{task}\n\n"
+        f"CANDIDATE (candidate.py):\n```python\n{code[:6000]}\n```\n\n"
+        + _TEST_HARNESS_RULES
+    )
+    try:
+        raw = generate(prompt, system="You are a meticulous test engineer.",
+                       max_tokens=max_tokens, temperature=0.1)
+        harness = re.sub(r"^```[a-z]*\n?|\n?```$", "", (raw or "").strip(), flags=re.MULTILINE).strip()
+        ast.parse(harness)  # must be valid Python
+        if "ELI_TESTS:" not in harness:
+            # Never a constant pass: run the tests it defines and count them, or, when it defines
+            # none that can run here, use the smoke harness instead.
+            if not _runnable_test_functions(harness):
+                log.debug("[VERIFICATION] harness has no runnable tests and no count; smoke harness used")
+                return _deterministic_smoke_harness()
+            harness += _ELI_TEST_RUNNER
+        return harness
+    except Exception as exc:
+        log.debug(f"[VERIFICATION] test synthesis fell back to smoke harness: {exc}")
+        return _deterministic_smoke_harness()
+
+
+def critique_candidate(task: str, code: str, generate: Optional[GenerateFn] = None,
+                       *, language: str = "python", context: str = "",
+                       max_tokens: int = 1200) -> str:
+    """Model self-review (Advancement D): find CONCRETE bugs / missing edge cases / wrong
+    logic that the deterministic gates (syntax/lint/execution/tests) can pass over — code
+    that runs and passes shallow tests but is still wrong (off-by-one, unhandled None/empty/
+    boundary, wrong branch). Returns a short issues string to feed back into one more
+    refinement, or "" when the code looks correct.
+
+    Budget is above the no-think threshold so a reasoning model actually reviews; it does
+    NOT nitpick style. Injectable `generate` → testable without a model."""
+    if generate is None or not (code or "").strip():
+        return ""
+    prompt = (
+        f"You are a strict senior {language} reviewer. Find ONLY substantive defects in the "
+        "code below for the given task. Report, one short line each:\n"
+        "- TOY/FAKE implementation: hardcoded or faked results, dummy heuristics that only "
+        "pretend to do the work, trivial stand-ins for the real algorithm, or logic that "
+        "MISREPRESENTS the problem rather than solving it (this is the most important check — "
+        "if the code does not GENUINELY do what the task asks, say so explicitly).\n"
+        "- Concrete bugs, missing edge cases (empty / None / zero / boundary / large input), "
+        "or incorrect logic.\n"
+        "Do NOT comment on style, naming, or formatting. If the code is a real, correct, "
+        "robust solution to the task, reply with exactly: OK\n\n"
+        f"TASK:\n{task}\n"
+        + (f"\nPROJECT CODE FOR REFERENCE:\n{context[:2000]}\n" if context else "")
+        + f"\nCODE:\n```{language}\n{code[:6000]}\n```"
+    )
+    try:
+        out = (generate(prompt, system="You find real bugs; you never nitpick style.",
+                        max_tokens=max_tokens, temperature=0.1) or "").strip()
+    except Exception:
+        return ""
+    if not out or out.upper().startswith("OK") or len(out) < 8:
+        return ""
+    return out[:1200]
