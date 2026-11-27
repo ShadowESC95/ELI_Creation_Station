@@ -97,6 +97,21 @@ class Studio:
         self.manager.close()
         self.main.unload()
         self.library.close()
+        self._release_log_files()
+
+    def _release_log_files(self) -> None:
+        """Close every log file kept under this studio's folder (the image engine logs to one
+        through the root logger), so the folder can be moved or removed: Windows refuses to delete
+        a file that is still open."""
+        root = Path(self.layout.root).resolve()
+        loggers: list[logging.Logger] = [logging.getLogger()]
+        loggers += [lg for lg in logging.Logger.manager.loggerDict.values() if isinstance(lg, logging.Logger)]
+        for lg in loggers:
+            for handler in list(lg.handlers):
+                name = getattr(handler, "baseFilename", "")
+                if name and Path(name).resolve().is_relative_to(root):
+                    lg.removeHandler(handler)
+                    handler.close()
 
     # ── jobs ──────────────────────────────────────────────────────────────
     def submit(self, engine_id: str, request: dict[str, Any]):

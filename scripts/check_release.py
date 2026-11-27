@@ -63,7 +63,10 @@ EXECUTABLE_MAGIC = {
 def excluded(rel: Path) -> bool:
     posix = rel.as_posix()
     if posix.startswith("src/"):
-        return any(part in ("__pycache__",) for part in rel.parts) or rel.suffix == ".pyc"
+        # pip writes src/*.egg-info when the package is installed from the source (its metadata,
+        # with the author's address): generated, never published
+        return (any(part == "__pycache__" or part.endswith(".egg-info") for part in rel.parts)
+                or rel.suffix == ".pyc")
     if posix in KEEP:
         return False
     if any(fnmatch.fnmatch(part, pat) for part in rel.parts[:-1] for pat in EXCLUDE_DIRS):

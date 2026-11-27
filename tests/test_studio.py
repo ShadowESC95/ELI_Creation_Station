@@ -85,3 +85,23 @@ def test_the_window_has_the_seven_tabs_in_order(studio: Studio):
     window.timer.stop()
     window.eli.timer.stop()
     app.processEvents()
+
+
+def test_closing_releases_the_log_files_in_its_folder(tmp_path: Path):
+    """Windows cannot delete an open file: the image engine's log, held open through the root
+    logger, kept the selftest's folder from being removed."""
+    import logging
+    import shutil
+
+    settings = Settings(main_model_source="none")
+    s = Studio(where=Layout(tmp_path / "studio"), settings=settings, hosted=False,
+               main=make_main_model(settings, hosted=False))
+    job = s.queue.wait(s.submit("images.procedural", {"prompt": "a lantern", "count": 1}))
+    assert job.state == "done", job.error
+    inside = [h for h in logging.getLogger().handlers
+              if str(getattr(h, "baseFilename", "")).startswith(str((tmp_path / "studio").resolve()))]
+    assert inside, "the image engine logs into the studio's folder"
+    s.close()
+    assert not [h for h in logging.getLogger().handlers if h in inside]
+    assert all(getattr(h, "stream", None) is None for h in inside)  # closed
+    shutil.rmtree(tmp_path / "studio")

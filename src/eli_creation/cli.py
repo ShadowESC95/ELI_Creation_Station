@@ -144,7 +144,7 @@ def cmd_selftest(_args: argparse.Namespace) -> int:
     from eli_creation.services import Studio
     from eli_creation.settings import Settings
 
-    with tempfile.TemporaryDirectory(prefix="eli-creation-selftest-") as tmp:
+    with tempfile.TemporaryDirectory(prefix="eli-creation-selftest-", ignore_cleanup_errors=True) as tmp:
         settings = Settings(main_model_source="none")
         studio = Studio(where=Layout(Path(tmp)), settings=settings, hosted=False,
                         main=make_main_model(settings, hosted=False))

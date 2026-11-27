@@ -105,3 +105,10 @@ ignore_missing_imports = true
 [[tool.mypy.overrides]]
 module = ["eli_creation.coding.*", "eli_creation.engines.image_engine.*", "eli_creation.companion.screen_analysis"]
 ignore_errors = true
+[[tool.mypy.overrides]]
+# numpy's own type stubs (2.4 and later) use Python 3.12 syntax, which a check targeting 3.10
+# cannot read; nothing here relies on numpy's types, so it is taken as untyped.
+module = ["numpy", "numpy.*"]
+follow_imports = "skip"
+follow_imports_for_stubs = true
+
