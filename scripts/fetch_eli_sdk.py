@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: scripts/fetch_eli_sdk.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: scripts/fetch_eli_sdk.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Fetch the eli-sdk wheel from its private GitHub release, check it, and point pip at it.
 
 eli-sdk is kept private, so its release files cannot be downloaded by address. A build (CI or a

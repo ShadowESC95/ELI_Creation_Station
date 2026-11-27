@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/gguf.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/gguf.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """GGUF models run in this process with llama.cpp, as ELI v2 and v3 run them.
 
 Nothing leaves the machine: the model file is read from disk and llama.cpp runs on this

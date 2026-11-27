@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/restricted_exec.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/restricted_exec.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """In-process restricted execution for code-mode.
 
 Runs a SMALL model-written program *in-process* so it can call ELI's live capabilities

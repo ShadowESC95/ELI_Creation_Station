@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/code_mode.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/code_mode.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Code-mode — the model writes a small program against ELI's own capabilities.
 
 This is the planner→run→retry loop (the same shape as the coding agent) pointed at

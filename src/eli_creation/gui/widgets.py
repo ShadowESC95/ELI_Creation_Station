@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/gui/widgets.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/gui/widgets.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Small building blocks shared by every tab."""
 
 from __future__ import annotations

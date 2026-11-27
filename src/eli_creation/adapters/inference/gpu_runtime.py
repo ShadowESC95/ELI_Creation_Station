@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/gpu_runtime.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/gpu_runtime.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """A llama.cpp that can use the graphics card.
 
 The llama.cpp inside ELI Creation Station runs on the processor, so that it starts on every machine.

@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/bug_memory.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/bug_memory.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Semantic bug classification + long-term memory of bugs and fixes.
 
 Two capabilities:

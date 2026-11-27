@@ -46,31 +46,21 @@ def cmd_licence(args: argparse.Namespace) -> int:
             return 3
         print(f"Activated: {lic.tier}, {lic.seats} seat(s). {licensing.standing().describe()}")
         return 0
-    if args.licence_cmd == "deactivate":
-        try:
-            done = licensing.deactivate()
-        except InvalidKey as exc:
-            print(f"Not deactivated: {exc}", file=sys.stderr)
-            return 2
-        print("Deactivated: this computer's seat is free for another computer."
-              if done else "There was no key on this computer to deactivate.")
+    if args.licence_cmd in ("deactivate", "remove"):
+        print("Removed from this computer. Tell the seller, so its seat can be used on another computer."
+              if licensing.deactivate() else "There was no ELI Creation Station key on this computer.")
         return 0
     if args.licence_cmd == "code":
-        from eli_sdk.store import activate_page, manage_page
-
         print(f"This computer's activation code:\n  {licensing.activation_code()}")
-        print(f"No internet here? Activate it from any other device at {activate_page(licensing.STORE_URL)}")
-        print(f"Your computers, and releasing one you no longer have: {manage_page(licensing.STORE_URL)}")
-        return 0
-    if args.licence_cmd == "refresh":
-        licensing.refresh_online()
-        print(licensing.standing().describe())
-        return 0
-    if args.licence_cmd == "remove":
-        print("Removed." if licensing.remove() else "There was no ELI Creation Station key to remove.")
+        print("Send it to the seller with your licence number; they send back this computer's key.")
         return 0
     if args.licence_cmd == "buy":
-        print(f"Buy a licence: {licensing.buy_link()}\nThe key arrives by email: eli-creation licence activate YOUR-KEY")
+        import webbrowser
+
+        print(f"Buy a licence at {licensing.BUY} (it opens in your browser).")
+        print(f"Then send the seller this computer's activation code: {licensing.activation_code()}")
+        print("and enter the key you get back: eli-creation licence activate YOUR-KEY")
+        webbrowser.open(licensing.BUY)
         return 0
     st = licensing.standing()
     _print({"licensed": st.granted, "reason": st.reason, "on_trial": st.on_trial, "days_left": st.days_left,
@@ -188,11 +178,10 @@ def parser() -> argparse.ArgumentParser:
     ls = lic.add_subparsers(dest="licence_cmd")
     ls.add_parser("status")
     ls.add_parser("activate").add_argument("key")
-    ls.add_parser("remove", help="forget the key here, without giving its seat back (deactivate does)")
-    ls.add_parser("deactivate", help="give this computer's seat back, so the licence can move to another")
-    ls.add_parser("code", help="this computer's activation code, for activating it from another device")
-    ls.add_parser("refresh", help="when online: the newest revocation lists, and the trial held to the store's")
-    ls.add_parser("buy")
+    ls.add_parser("deactivate", help="remove the key from this computer (then tell the seller)")
+    ls.add_parser("remove", help="the same as deactivate")
+    ls.add_parser("code", help="this computer's activation code: what the seller needs for its key")
+    ls.add_parser("buy", help="open geteli.tech to buy a licence")
 
     b = sub.add_parser("bundle", help="tell ELI v3 where this copy is")
     b.set_defaults(func=cmd_bundle, bundle_cmd="show")

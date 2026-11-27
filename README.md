@@ -61,17 +61,11 @@ An installed copy runs for **seven days from its first use**, then needs a key: 
 Station key, or an ELI v3 key sold with ELI Creation Station included. Keys for other ELI products
 don't open it. The terms are in [LICENSE](LICENSE).
 
-A key bought from the store is **activated once**, the first time it is entered on a computer (Help →
-Licence… → Enter a key, or `eli-creation licence activate`): the key and the computer's activation
-code (a one-way code from the operating system's install id) go to ELI's licence server, which counts
-the computer against the licence's seats; after that the key is checked offline. Moving to a new
-computer: **Deactivate this computer** in the licence window (`eli-creation licence deactivate`). No
-internet on this computer: activate it from any other device at https://licences.geteli.tech/activate
-with the code the licence window shows (`eli-creation licence code`).
-
-When online, Creation Station also asks the licence server at launch for its list of withdrawn
-licences and, during the trial, for this computer's trial (the product and the activation code).
-Nothing you make, write or open is ever sent.
+Creation Station never goes online for its licence. A licence covers a number of computers, each
+with its own key: send the seller your licence number and this computer's activation code (Help →
+Licence… shows it, or `eli-creation licence code`; a one-way code made from the operating system's
+install id), and enter the key you get back. Moving to a new computer: **Deactivate this computer**
+removes the key here; tell the seller, who frees its seat. Buy at https://geteli.tech.
 
 ## Run it
 

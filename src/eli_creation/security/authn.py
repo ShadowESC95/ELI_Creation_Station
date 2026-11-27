@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/security/authn.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/security/authn.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Who is acting, and how that was established.
 
 Authorisation (roles, matter membership) answers "may this person do this?". It is worthless if

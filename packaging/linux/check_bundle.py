@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Reused from ELI_Legal: packaging/linux/check_bundle.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: packaging/linux/check_bundle.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Refuse a frozen bundle that splits a library from its own other half.
 
 A frozen build carries some shared libraries and takes the rest from the machine it runs on. That

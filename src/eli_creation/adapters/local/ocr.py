@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/local/ocr.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/local/ocr.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Reading a page that is only an image: OCR, on this machine.
 
 A PDF page with no text layer (a scan, a photographed exhibit) is rendered to an image by

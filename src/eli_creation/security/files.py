@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/security/files.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/security/files.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Case material on disk is readable by the person running ELI Creation Station and no one else.
 
 The databases hold document text, passphrase hashes and second-factor secrets; the vault holds

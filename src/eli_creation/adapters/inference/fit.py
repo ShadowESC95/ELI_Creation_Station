@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/fit.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/fit.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """How a model is placed on this machine: context length, layers on the graphics card, batch.
 
 Nothing here knows a model or a machine by name. The inputs are the model's own costs (from its

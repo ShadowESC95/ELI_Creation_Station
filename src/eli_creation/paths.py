@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/paths.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/paths.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Where things live, decided without reading any setting, so it can be used before settings load."""
 
 from __future__ import annotations

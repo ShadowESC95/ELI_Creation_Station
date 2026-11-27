@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/embedding.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/embedding.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Embedding models run in this process by llama.cpp, for searching by meaning.
 
 The model is a GGUF file on this machine, found in the same folders as the chat models (a file

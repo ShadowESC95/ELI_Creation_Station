@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/budget.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/budget.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Shared wall-clock budget for the coding agent.
 
 The coding agent's loops (tree search roots/refinements, DAG nodes, critique

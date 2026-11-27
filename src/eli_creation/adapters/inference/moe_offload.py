@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/moe_offload.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/moe_offload.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Keep a mixture-of-experts model's expert tensors in system memory, everything else on the card.
 
 Such a model uses a few of its experts per token, and the experts are most of the file. Placing

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import multiprocessing
 import sys
-import threading
 from pathlib import Path
 
 from eli_creation import TITLE
@@ -41,8 +40,6 @@ def main(argv: list[str] | None = None) -> int:
     if standing.on_trial and standing.days_left == licensing.trial().days:
         trial_notice(None, standing.days_left)
     bundle.refresh_registration()
-    # when online: the newest revocation lists, and the trial held to the store's (never waited for)
-    threading.Thread(target=licensing.refresh_online, name="licence-refresh", daemon=True).start()
 
     try:
         studio = Studio()

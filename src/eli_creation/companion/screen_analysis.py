@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/perception/screen_analysis.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/perception/screen_analysis.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Local screen analysis — depth modes, memory recall, research context.
 
 All processing stays on-device: screenshot → local VL + OCR → optional

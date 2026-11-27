@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/core/dag.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/core/dag.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Generic directed-acyclic-graph engine — shared scheduling primitive.
 
 Project-wide foundation for dependency-aware execution. Used by:

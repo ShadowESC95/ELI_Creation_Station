@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/persistence/connect.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/persistence/connect.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Opening ELI Creation Station's databases, encrypted at rest.
 
 The working database (matters, documents' text, findings, reports) and the audit ledger are

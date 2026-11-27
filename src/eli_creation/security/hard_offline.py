@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/security/hard_offline.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/security/hard_offline.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Hard offline: the operating system's kernel, not Python, refuses network access.
 
 The network guard (``adapters/local/network.py``) intercepts Python's own ``socket.connect``.

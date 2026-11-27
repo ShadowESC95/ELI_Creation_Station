@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/local/network.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/local/network.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """Deny-by-default outbound network control for the legal runtime.
 
 Installing the guard patches Python's socket connect calls for this process. A connection is

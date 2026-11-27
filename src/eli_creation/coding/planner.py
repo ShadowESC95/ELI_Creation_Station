@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/planner.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/planner.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Structured decomposition — planner / implementer separation.
 
 `plan_task` decomposes a coding task into an explicit approach + ordered steps

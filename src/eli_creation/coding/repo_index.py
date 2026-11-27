@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/repo_index.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/repo_index.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """Persistent repo index for the coding agent.
 
 Replaces full-tree rglob scans with an incremental SQLite index keyed by

@@ -3,7 +3,7 @@
     "from": "ELI_Legal",
     "src": ".github/workflows/ci.yml",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "f40df5f5e68a0c498b3f81ba5ee63581cb58d7532948b0b0ad560244f4c00e61",
     "dest_sha256": "b679ac89e74f27ec7d2e42257a468268aadb57d57dfbc564fd300c680412fcc8"
   },
@@ -11,7 +11,7 @@
     "from": "ELI_Legal",
     "src": ".github/workflows/release.yml",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "ecded937c54aab87ca12d422987cbad15b25f5b8a89d62dec3c613f257baa58e",
     "dest_sha256": "ccce78ecc06f501bf25aa4ecae547115ac5471da5b9a8b8f7220fe9c10fd79ab"
   },
@@ -19,7 +19,7 @@
     "from": "ELI_Legal",
     "src": "SECURITY.md",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "189de99bf36ebf187acd69648a06b2530bff9b1802f99198731d6b92d06c7d70",
     "dest_sha256": "2d544f4badf70909f172640541daa5e485c66d8ff33b79822462cf70ea1bc29a"
   },
@@ -27,7 +27,7 @@
     "from": "ELI_Legal",
     "src": "install.ps1",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "8955fbb37412cc7b2c027fed6ab3f30e5885a64de90c20a4796ec7d6ae815add",
     "dest_sha256": "04789e36ddc82d588d65504412db0445e70cb79fde1e69b1e56fa24fded34cbd"
   },
@@ -35,7 +35,7 @@
     "from": "ELI_Legal",
     "src": "install.sh",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "d9860346b8c1147b91e83cfb1ed25062d7f88a93fe0f8a6f1a0715c49e9c5cde",
     "dest_sha256": "067ae935e3388167f800688488da1e77cfa38ecde7f47e2862e81c6cac1d11fc"
   },
@@ -43,7 +43,7 @@
     "from": "ELI_Legal",
     "src": "packaging/INSTALL_NOTICE.txt",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "6fb63ba2947a676ad0b17a0c7bbf350ae7c09b448401be8ecbe72e272d2134c6",
     "dest_sha256": "bec0f3b731b036a535b146c0065b47de6d8c6f84e48352b1386d1b579b31460e"
   },
@@ -51,7 +51,7 @@
     "from": "ELI_Legal",
     "src": "packaging/README.md",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "c50d2ef3fa822766156b6c19703086e7b73cc0dfb32c8b6ef96b3bafbc029282",
     "dest_sha256": "67c0d92a2a2a16304956a3390b05b69004687bf26405d25bd8b7a078e3035c04"
   },
@@ -59,7 +59,7 @@
     "from": "ELI_Legal",
     "src": "packaging/audit_exceptions.txt",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "5d1e20d3113c9514b06c3db2677f00fb94a154e37bfae2f46c316d3561c99b50",
     "dest_sha256": "0c5914e65e92fc49493c9bbcde3fb5da069dbf2eb8a92628a56ec29728108bf9"
   },
@@ -67,7 +67,7 @@
     "from": "ELI_Legal",
     "src": "packaging/eli-legal.desktop",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "4f8421b12c90ca8cc5cd60ab9ecf34f4b1c1ceba760bfc84e615702413ce636d",
     "dest_sha256": "176f5584c1817b31fb53d86b2d4a1c2b580f9776c47fba667f608bc6c09dbe97"
   },
@@ -75,7 +75,7 @@
     "from": "ELI_Legal",
     "src": "packaging/linux/AppRun",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "2d50eaf19658c221a0f50b193e26604936393537d9ce3c76bf83d453afd3011a",
     "dest_sha256": "7884a996ce8d2d8910f54d5060658ae745c7566fc0492d3d62da1fb33a21b0b8"
   },
@@ -83,7 +83,7 @@
     "from": "ELI_Legal",
     "src": "packaging/linux/build.sh",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "5fc94a152bc760b3c005bec149834c24f8dafdd2b78d939c4398d17b34c29a57",
     "dest_sha256": "c9517086b33dc58bba5c4cc316c87c47d7f8e1c03cbfcf30b9214b78ba316f17"
   },
@@ -91,15 +91,15 @@
     "from": "ELI_Legal",
     "src": "packaging/linux/check_bundle.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "644ce10e4645ce005c70a5f16ac33a799001c6fb74cbf5322f4f01ec01d348a9",
-    "dest_sha256": "36ab5761bf23f64dad81c66656caff4c9ab31a52110f9d4c5f4c5e53dad4f29f"
+    "dest_sha256": "055f2093b4e5be683fca421a977a8a4d71aa6341aa3d6a4f5d0d670c4add9aad"
   },
   "packaging/linux/creation.eli.desktop.appdata.xml": {
     "from": "ELI_Legal",
     "src": "packaging/linux/legal.eli.desktop.appdata.xml",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "3831a4ffc0fffce7f507e1169a55b8d3f5b51b74a38147031a0c29a4be84b9dc",
     "dest_sha256": "42b0fad81f39a201f8b223dd9caa6fa5e3dea8ad6a4d86fd442014bcc6e16314"
   },
@@ -107,7 +107,7 @@
     "from": "ELI_Legal",
     "src": "packaging/linux/installer_header.sh",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "4681990b3e29a2da2f75bde9c3d959c13c1a38a90660b3807d8096f960c94831",
     "dest_sha256": "fda6389c7aa3d528ba7d381a8864472dbaf17aa926b8b4092b0676753900b962"
   },
@@ -115,7 +115,7 @@
     "from": "ELI_Legal",
     "src": "packaging/linux/window_smoke.sh",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "8a6ba468f3de3b7651cfb3f2b117875540105b3c0e724518457275c069a44061",
     "dest_sha256": "cdf241cdae9f0fcff8e11a2091935515a5fc3cb9da2cec5dea07034dd85eaec2"
   },
@@ -123,7 +123,7 @@
     "from": "ELI_Legal",
     "src": "packaging/macos/build.sh",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "53a1926d4df34744b6a0003c542f21029653b9bb7fc4a3b4cf91aace59557045",
     "dest_sha256": "4ab246922d8986851c1597af46ffaf2373605194c553ed1b5dcc18015bbcb9ed"
   },
@@ -131,7 +131,7 @@
     "from": "ELI_Legal",
     "src": "packaging/pyinstaller/eli_legal.spec",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "9d90e138c7f1537cafb0444b319256caf2e24e5f68eea6bfc34eeff335937b1e",
     "dest_sha256": "343a47624c5fb55c15935c42459bbebe9144716359220d7bbe71f04c4a4f4428"
   },
@@ -139,7 +139,7 @@
     "from": "ELI_Legal",
     "src": "packaging/pyinstaller/entry_cli.py",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "9441a6bf1a05479788d9eef3ef8ca6eefbab8d28063a0cfb41ca10cce3b13f81",
     "dest_sha256": "449e55f79680a382771ef4cd681f78fc143dd8a43ca55b2200e8490fbdf4cada"
   },
@@ -147,7 +147,7 @@
     "from": "ELI_Legal",
     "src": "packaging/pyinstaller/entry_gui.py",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "9fd0f5f0334dc8e376a8490259ac1e235313140ab6acab280704d0500919eeb2",
     "dest_sha256": "9d1519cc8fa01c9f0d2b46e49401d9bc60aa0881a89672ba2888908f07b510ab"
   },
@@ -155,15 +155,15 @@
     "from": "ELI_Legal",
     "src": "packaging/release_notes.md",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
-    "source_sha256": "d288e963552f911d55e56ac58b8aec768192b6d0af1e44ddf8cc85050e149258",
+    "commit": "2abede02bc",
+    "source_sha256": "5ebf63a5fb058ad59d0849c7da5f19555c137d5a1baedcab5ac855149c96e912",
     "dest_sha256": "d5d6c23cc769090fffd499993078818fc81521040c4ca2b8cf1c45f4ca9fe350"
   },
   "packaging/windows/build.ps1": {
     "from": "ELI_Legal",
     "src": "packaging/windows/build.ps1",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "bad2c81545cc6e1ea3584d5be34badbdee500759b3fa84295651d0fb39981f96",
     "dest_sha256": "b6ecb6fe61dc12a43f9e36261fc644232b8eb61c4ead52fe6f07f6826776049a"
   },
@@ -171,7 +171,7 @@
     "from": "ELI_Legal",
     "src": "packaging/windows/eli_legal.iss",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "858130d0c8ab2185560229666af1cddee1410d6ced0345c34aaa346419c555b3",
     "dest_sha256": "ef115a43108bd08cf7391832fc81df5640debe8b7c6c937068c7d61b2403a7ee"
   },
@@ -179,7 +179,7 @@
     "from": "ELI_VR",
     "src": "tools/make_release.py",
     "mode": "adapted",
-    "commit": "6b1f689f4c",
+    "commit": "d366545f11",
     "source_sha256": "7f5f3424c36a114bb5792e7f118cfc583b966cd47ef02fd98f37a1dfe7615619",
     "dest_sha256": "0ff1b6ebb1e1d6ed8ca80bf826fcc0663db9ea98e9fd46ab7fae101c58730457"
   },
@@ -187,15 +187,15 @@
     "from": "ELI_Legal",
     "src": "scripts/fetch_eli_sdk.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "0624c07e54c4ea4bf84e8cbebd9d6b0b7a9bca1699381672e79379aa77f2f467",
-    "dest_sha256": "a99b2e55e119865811171b5b5ad57e5087fb678ebf82aa65ec5a614e1b43d2ac"
+    "dest_sha256": "6896b6daa8ba6d2a30a9c100ac434f1d29c886f14616436fcb75a47fa0714d64"
   },
   "scripts/third_party_notices.py": {
     "from": "ELI_Legal",
     "src": "scripts/third_party_notices.py",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "1ab610c5986440b223ab5b82d64ad7c4a28a1fd8a483d2f3eed36e714a736c9c",
     "dest_sha256": "f78431a52c0780bed3352c66fd5acc53af2de9e00fdda7e83713e636e32ae6ac"
   },
@@ -203,167 +203,167 @@
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "dest_sha256": "cbf9421fcfe03d44484ff2a94b329c3db798b8810e760bf5d446b926bba5271b"
+    "dest_sha256": "6576170707a09b99e16644d981cc2b1db018e7fdfd905270428c4e72e06efc21"
   },
   "src/eli_creation/adapters/eli_v3/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/eli_v3/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "ebc7d8e7292ece74113fc35df675cbf31b58aa0f92c10cb1744a4e8b6d23f194",
-    "dest_sha256": "08109364adae5c577ab9cb0d55312ac0333a3cbee21129f731de53c664a6a1b8"
+    "dest_sha256": "31254c443085109a78a23733df3177620b299424bc6a91cfd03999b567d63f38"
   },
   "src/eli_creation/adapters/eli_v3/compat.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/eli_v3/compat.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "9eaecb94c05bdad23fbce216136c94857ff1e37c13b6adc9c3dea924843f79cc",
-    "dest_sha256": "eff79ffe9ec388f1f9a262d22012fa87b25c2bd73adaaae600f87ccb66f3d7f2"
+    "dest_sha256": "c82364f49aefcc33d06402a8c7b49b8d299d7e00823e7f36cb9d114bebcfb27e"
   },
   "src/eli_creation/adapters/eli_v3/inference.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/eli_v3/inference.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "24bb0f7a1f5f3880e870b3bfa7469af29edd433c74d01dcc3a8493a25e7c20fc",
-    "dest_sha256": "de4ba8adae05ca41b2a669db39b231a2b4cc4f1a08eeb51d2ea50e0af88c656a"
+    "dest_sha256": "95ad91164129b060c34d969b49d34f0394a78b423886fb1846baa4a74ad11436"
   },
   "src/eli_creation/adapters/eli_v3/network.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/eli_v3/network.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e84d5eff30d9f5b5f2f50f07ac6225adfcf8be5a04cdb6ab317981c006bdc62c",
-    "dest_sha256": "9f87654210679ba27c852df0d7992d4c41506643c54c99aa02ec7a32985037a0"
+    "dest_sha256": "bae6ae91b4f495ff0cb513562d5b6c8beee0da74d6dc376b91fbecc78b3c7b3c"
   },
   "src/eli_creation/adapters/inference/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "dest_sha256": "db42aa45c0c019b7f302b5ac264c86af7275a83cd3690f8bd2c3e622f425f980"
+    "dest_sha256": "549cb1c8c2ec551f806dd7f12c16b95edb8ffb5c1df98d408251df51d2889ef5"
   },
   "src/eli_creation/adapters/inference/embedding.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/embedding.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "b67b7d913d38face29ae517945ee0e9f8981654d9edc9a0eccda0ea65f721fa2",
-    "dest_sha256": "231ff64a66d101fd6c89dd3314c61ed090919b7ffc2cd2828d38e7f1c5e4cfe5"
+    "dest_sha256": "66ed497d3584e9639e2bb6dac0ee070c59f615d65d149b269562117e1b86b4c4"
   },
   "src/eli_creation/adapters/inference/embedding_null.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/embedding_null.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "3a632a125bac48dab8633a0badeed6ef295fe4edffbd0b1e3109b3c2c51bbb6a",
-    "dest_sha256": "76939d4b45ff29a3c8e6d90840996fffde33adcb8cf5d2b2b8af1a40618989d7"
+    "dest_sha256": "c393ecdcc7a503e854138acedb1eac32ea8b43221cfc880bf4ebcbe41756ebb5"
   },
   "src/eli_creation/adapters/inference/fit.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/fit.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "34540de7e46fae1f6c12bf33fcc1371789053dd5bd3562a6481103b9c093242d",
-    "dest_sha256": "9a3ec47a231799a76d9dd017b82130f52d68cd83caaa5a1a2249fa182668abc6"
+    "dest_sha256": "bc12b537d973677bae4285091cdcfeb27259d235b5f13581246773e5bb42bfcd"
   },
   "src/eli_creation/adapters/inference/gguf.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/gguf.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "d84afc0ebd98cdd853d9ff7029c3aecf99d5f87e80e29d8ed5fd3c8974c2ee09",
-    "dest_sha256": "e3357f50ffad8960016a19a1c0e9090e065ae37b645ea172562a36eb6cd9d2b4"
+    "dest_sha256": "d37ac3e6cbba9ae8c8907e00dbd4f631495435af68916a244485bdb69ee0c91a"
   },
   "src/eli_creation/adapters/inference/gguf_sizes.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/gguf_sizes.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "c36f0324e33d502b74dd6de074df4bd97e024be25405fb235580d671102bce99",
-    "dest_sha256": "93541da56bb9aa1d61757e49a3541448040dddcddc406c762b463d26f39d6737"
+    "dest_sha256": "df9b8646601ef747e3d10e7a9bd525ed60cd0bd7c0fcfcb169db030c657fcd05"
   },
   "src/eli_creation/adapters/inference/gpu_runtime.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/gpu_runtime.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "b72db4f148f5f1768809b9c7365d78f85f020fa36932775036f962f6204be254",
-    "dest_sha256": "e137bcf82c5c91e82b3cd2ce6f048eacb28c5c70956a54a2d849cd87428651ea"
+    "dest_sha256": "5cb0cb052b97525d9f9af1c62cc8374c0f3285b33510069ef1f974b3a80d07a1"
   },
   "src/eli_creation/adapters/inference/hardware.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/hardware.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "1ced1d55934fcd5b698492a3805171af8bc7c161551973a6b84abb7c8d5653d7",
-    "dest_sha256": "5ec76128fc5ae500025890b108008fe437ac1f7a905b7c2e2f422ee8ed5a06be"
+    "dest_sha256": "83306a86363d2d9535c078456e6fdcf549da1a393b9a5b5942b04cbad162fae4"
   },
   "src/eli_creation/adapters/inference/load_diagnostics.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/load_diagnostics.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "eeec7e30ef1b441500c0ab6876598a75d4766dc1e977702798765587dad0bc92",
-    "dest_sha256": "47f0e75ccd764c9e202c4c186993dd3793056152aad59d9a15ce8d8d9794e4ee"
+    "dest_sha256": "83da7469380386a34147457746ea10ef481f5a7e6aa812f7f488eda87c91751c"
   },
   "src/eli_creation/adapters/inference/local.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/local.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "9f38a4f2ca0df02a87399062c14ee0427ca9a93bde2413a2e5a0eb3c893b76bf",
-    "dest_sha256": "2483392821a0b2bf9d98d8594cd4e12605b82968df268485adec9bdbb48ca1b6"
+    "dest_sha256": "d6a41b9bc1db1867611c611f265a021c55d2857346c71743697ccce45f3ad0e8"
   },
   "src/eli_creation/adapters/inference/moe_offload.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/inference/moe_offload.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "9b16bbc4d35a07afd9daf7e545ee3d80eda9bf6896b4e98d718ae2fd66d2442c",
-    "dest_sha256": "01e270ee6f6acb5fb1562cda1a6eb74ca6ca2159f82f2952748504fe053b6360"
+    "dest_sha256": "8740eabff8c0f4c66a2ae73da327cb800622475c73040ee7c275f71ccdf8b2d0"
   },
   "src/eli_creation/adapters/local/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/local/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "dest_sha256": "1c6855a25a557487e27dfb9b0115abdc000de8c7ffbedac98296e0a482549522"
+    "dest_sha256": "fae867a9d994801607c090ae170ac3acf937c338383b42ee118ba272c2f316c7"
   },
   "src/eli_creation/adapters/local/hmac_audit.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/local/hmac_audit.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e753eed523490848af005f19845696c4eb42c7f6982f4e9eca481e48f9084886",
-    "dest_sha256": "765d23669fba7ec96c99233cb598516a920e2a7a4cc926d17361a5dd4cef1268"
+    "dest_sha256": "e4470c0acb532d56b5f5875ae0c548a5b577a62f6b964a4bb9f0c79e558e2499"
   },
   "src/eli_creation/adapters/local/network.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/local/network.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "7362db216d6679bc624b1e8d2f0c1820a88cd0ab0f20005b8029ebeb0e44f4f5",
-    "dest_sha256": "469a424ab88062521efc93523fdc6ee997b7613164af1ca9c1623bfb92352dbd"
+    "dest_sha256": "e9ae3855ba68d0b954f52f399880b53ea985410937b2cc6eccac14da4d41205a"
   },
   "src/eli_creation/adapters/local/ocr.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/adapters/local/ocr.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "4f37f1d58c244310a0f6bd9c48316af772a8197ee886dd73996214e81dcdf152",
-    "dest_sha256": "4f7c9100d43c13cff61f8cb01a93cfdc1db0a8a653e94631f3b480632f684884"
+    "dest_sha256": "86423f7416543f0072c557375ee6b2e5d24375496f8843857e15a90620cd647e"
   },
   "src/eli_creation/bundle.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/bundle.py",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "78d480299ae741d651fc3a69720a3d31e722c6d742f233adaffbb5be2f117b22",
     "dest_sha256": "5cac4304415fdf482b286622cc041f4547639bf34ca66133c0175c881e03cbd2"
   },
@@ -371,135 +371,135 @@
     "from": "ELI_v3.0",
     "src": "eli/coding/__init__.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "6fc1af605cf8c3ef82d6d00b4a950decd16d953de2bf6092f9b222faa53d3654",
-    "dest_sha256": "9c026c198e25a96bd3dd58dca6c7ed474f35171685b26d5b29c148b7a5ad4699"
+    "dest_sha256": "0a084f15035ff0e68561955e0229339c6efb329e5bd50250adeb5a0184f7bf03"
   },
   "src/eli_creation/coding/agent.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/agent.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "022058ee53559160d953a2e6c0df077e116ef2bb75226528a1cb86e2842876f2",
-    "dest_sha256": "f88ef243dd7db94bc42d9d734b7b617c4d42fac32906e91d5e3a8f9d8876f57b"
+    "dest_sha256": "e670590bdaa08676e03c09febe5fd952c91de14196cc59955cab13846f3fa57b"
   },
   "src/eli_creation/coding/budget.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/budget.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "03324a6d91909eb8914d1709152ea7dafdc1aeeb926acaac7f8682689a4a4b6c",
-    "dest_sha256": "97d71483f4156865d4874e139d1233c27f8084caeece049433cfdcc65f127477"
+    "dest_sha256": "6198fd29380c68d636fdd9b4522a55d5d3f34a19f50d6d332755924a80d3d32f"
   },
   "src/eli_creation/coding/bug_memory.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/bug_memory.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "8e9b7abdad8041d5caa2e3b6e1b566483ffb77639bac5e55aa8fac54e9b0bb7d",
-    "dest_sha256": "cc93a1c80e55089f52435b68bb01da2abe20b0557b9018d72d2d0d818fd822da"
+    "dest_sha256": "3f6edbb457b7a65a05e95d6bdcaadc734e267b669bce9ece7af1c04f74bce52e"
   },
   "src/eli_creation/coding/code_mode.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/code_mode.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "13456e0721507582f92b4e3d88133124f32ee3779aff5aab84a6e838ec4b81bc",
-    "dest_sha256": "d7f8607e02d0ccca9b7970e138b17ce4505ed28a3bc34fe6b318a320c85be4bf"
+    "dest_sha256": "05c2b962462286fe8cfad74d97ae35c020adbbf4602a405559e9b5d9aa43ee33"
   },
   "src/eli_creation/coding/cost.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/cost.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "cfebe977c848ca1da31e0c088c1ed73379581c8f2be085d02316582ee577866f",
-    "dest_sha256": "74f47725ee3b7b7617bb08a883e7ca704ea47997beffd21d475d93c7b7b4c1ca"
+    "dest_sha256": "75997e03aa9d447d706d551683b813e4ea0b7032cd422e3ba86b5d8224d7d424"
   },
   "src/eli_creation/coding/dag.py": {
     "from": "ELI_v3.0",
     "src": "eli/core/dag.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "c9c1a68a6bcb95bf7b47e2e1e85cc0e43286f5967365050f8f5c58d89222962d",
-    "dest_sha256": "3a08507507851f9ecec62f15be6e39bf4a6d261f3eb73bbfd0b8d6423768fc20"
+    "dest_sha256": "9769bc6cf47ce4fc71c26699b0bbb9d5b9f5e53f56827233a5f89d4012507b9e"
   },
   "src/eli_creation/coding/patches.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/patches.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "76d062a3da680d3d12ee7b337469fe7c510ae4ce4b798e9253a1bb0474b94e3e",
-    "dest_sha256": "cebc6f00321179924175c58cfdae080db7976965b53f5cf22e910ecfac84ed45"
+    "dest_sha256": "bf6bf03d530893850eaadd4b4df1e72ae33683208f28a55c659777ac75409131"
   },
   "src/eli_creation/coding/plan_graph.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/plan_graph.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "5fe36fa6d4724b367486e83651ca2a00b1d2af3b3043be66c7c1bd6a060db4b9",
-    "dest_sha256": "181b47ae9ddeee6a463a004570e05a7d355802b482846b13b6ae3829228b2f17"
+    "dest_sha256": "d76762de36ed10a6b686a6dff43a0cf7782eb4ae2b173ba1298575236763ce02"
   },
   "src/eli_creation/coding/planner.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/planner.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "add5f807785e42e255e3cab5b5e607677ef9e7ce08df4151ad9fd97a854b77d8",
-    "dest_sha256": "56c17a241dee6d880ec81592a8f1cb55236444a89909791660649273774fb5cb"
+    "dest_sha256": "d3eeb6026017673223cb2919cdc269ba9b6a34d8df06320c69420137ee9ba8f9"
   },
   "src/eli_creation/coding/repo_context.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/repo_context.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "2a54488e26a45c67962b72ee7f68c15783ad5344c8d6e5830793a9bddc7467cd",
-    "dest_sha256": "9d3eb9222fe1768a3a14afeaaedea6dba032725ae11a848abe441c045a48ca32"
+    "dest_sha256": "9be43baad764fa5dc4162510c778e711b29ba44889eee3a2c626eacf611a8cc1"
   },
   "src/eli_creation/coding/repo_index.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/repo_index.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "23799745825cbc0ff15daf16ae141c2bed90c935e7ad4e5b419900385178661d",
-    "dest_sha256": "8e7e11c90f231fe466e59d36442a78bf0f911bcae5aa59f8306761e348d13da9"
+    "dest_sha256": "d69d7dc6f3ce29848a73df29334629b5bf732f0da0f9adbca3cf5fa808b69132"
   },
   "src/eli_creation/coding/restricted_exec.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/restricted_exec.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "ecdd6490609d8f6bac90a590a1bc378c1570a4ef731f4461e5137d44c82ce3fa",
-    "dest_sha256": "b43d0035fe3dd9ad66c7b5f2c9a2c0003670fd3d383a10cd1636e883c446ed58"
+    "dest_sha256": "0315e9fd6fdf7f6cd62c4eb7632915f09c3a57892b8f645cbe058768db5389e2"
   },
   "src/eli_creation/coding/sandbox.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/sandbox.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "ac3a2397da510f409e10db431e1c1607f2b5c633228ed3c77d1ec4a0d8b80fcb",
-    "dest_sha256": "9e3a2c3a3c6c2f995fdbdd0995d063c1ed0fbcdae4ddeb3287b71a877f04ebe7"
+    "dest_sha256": "0b234073291cff3d7e8768d4b8e9c5e141103ebcbb6164f350ecf466376701dd"
   },
   "src/eli_creation/coding/search.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/search.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "004ba58704ab51d4c4a2fc926f98e646378edd76d599d125104a3861f068bd3d",
-    "dest_sha256": "d2136510333d833a3cef3c328f20fceb53ddd100b1bf480cbe9c4ec4baf95d1d"
+    "dest_sha256": "69144af41dcb8a7e1d7aed76647713d8e524a1ca8472dc2adc34f2b34524446d"
   },
   "src/eli_creation/coding/verification.py": {
     "from": "ELI_v3.0",
     "src": "eli/coding/verification.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "c3317ae73021df3aa8b13d18dba29af2b518e96e875fd1636e0395fa07cd76c9",
-    "dest_sha256": "6cff1329e2fdecb89374917e51dd5613108c02b45b37f3d559b3d3de187685c8"
+    "dest_sha256": "22ff4f873ec114030041fe06c90da69712bcb3cf1221e151cb2109981cd8d481"
   },
   "src/eli_creation/companion/attention_queue.py": {
     "from": "ELI_v3.0",
     "src": "eli/planning/attention_queue.py",
     "mode": "adapted",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "286e2d38e4a9b98454a5b93acb6e4ccc4203f3b311c3a444b66f7cb6f89a25c9",
     "dest_sha256": "c28e8e5430c04f8d8f49790fd2d5a470f737577393d204a28a7221fd7a176727"
   },
@@ -507,63 +507,63 @@
     "from": "ELI_v3.0",
     "src": "eli/perception/screen_analysis.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "3b40808215aa138504ae90f306e16d2bfdceb6060a52404326ffe86b22c9ce60",
-    "dest_sha256": "f73768bcec03f01ec3eb8e827ba8db976f70ecb959340e8c04029754ebaf7d77"
+    "dest_sha256": "1e572331a66b33ade21c8857c32a7fd8d941018027a1c6f04e2d9864d58e0fc4"
   },
   "src/eli_creation/domain/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/domain/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "c7a5746ac4519ef52c85b62f9346a0537f39db8604ee732237f08cd2055bc8f1",
-    "dest_sha256": "4c2b2d606fd767b8709b024a3620ac93700b5a088345f244f87d6f6c46d46280"
+    "dest_sha256": "f3e3e8c0f294c06b2c5b08575102769ed1bba8698babe1ea17f3d97ef9d36d99"
   },
   "src/eli_creation/domain/errors.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/domain/errors.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "cf78cafd047cdf8f3744f27ef6b52a0d5141f93dfadf9ec5989da1a499bd7003",
-    "dest_sha256": "daadcf16a755e52ff6d3b388ba96b658f454381e6a54d72590deba78cf8a8d4c"
+    "dest_sha256": "5bd83cb78a8ec05e839a928866f1d3dd32169d498825c334cd645764970409a2"
   },
   "src/eli_creation/engines/image_engine/__init__.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/__init__.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "b3859e7829ddc9d94ca4765a936adb2fa7b1adde40114257ad68bad209f82e70",
-    "dest_sha256": "eae4b1c61ee308c2fa94555a734f062e813c53b87ec569a6ad10c3e79467bb32"
+    "dest_sha256": "961fa853ebc0043530831a99e261966059d9a785aeb82c31524a34543c0470f6"
   },
   "src/eli_creation/engines/image_engine/contracts.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/contracts.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "f1ba05cb72de7010e9e2ba115bf48f310af8078c38cbe03c599addeb0906adbe",
-    "dest_sha256": "148ffe00f7efc2f671c207c7507cc1b58aa56d25fda1d3dc67cd451e3a8c7419"
+    "dest_sha256": "fd79b735538a904be04eda58956a565fa2ecc9f96c4c74ed7e2a8ffc9d6b5013"
   },
   "src/eli_creation/engines/image_engine/memory.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/memory.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
-    "source_sha256": "a8ca603d83d55160d6e2ce9ae4a9bf5c48aaf1b77d77a4e02a15fa4e1b1ed8c5",
-    "dest_sha256": "f4d8db827bf454c183873f4aaa1b21deab3c8fba5b78f3d7adeba04b933844be"
+    "commit": "8b35366641",
+    "source_sha256": "4c6816c2a6ccfa5d69655754a8abb246284f31db6d790aa11dfd3c2379e880f7",
+    "dest_sha256": "113656772443c4036b7e8862bb75842c333da1e34948dfb43cdedda37756e95e"
   },
   "src/eli_creation/engines/image_engine/plotting.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/plotting.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "c9d7f79cf8b1cccefb6d56a52fc2f2518b909ff63234914ccd0bc65026feaec3",
-    "dest_sha256": "5532b2cf669375ebb88f4f4de5dc2c4aba1d5a3b6f8b895ef3cd107a79864afc"
+    "dest_sha256": "f77017c6ea4ad29c79b1bbb8d74b8424b2810bb57183f07731990689198e7dc2"
   },
   "src/eli_creation/engines/image_engine/presets/chart_dark.json": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/presets/chart_dark.json",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "cbcb0e3a123f4a71c20fc67b6e033c452fc762ef4a7e0719e03a02472beb471a",
     "dest_sha256": "cbcb0e3a123f4a71c20fc67b6e033c452fc762ef4a7e0719e03a02472beb471a"
   },
@@ -571,7 +571,7 @@
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/presets/cinematic_dark.json",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "62f8d06c194189e6158e5db3989e29a05b585c2d43e50394e1ebfd9ed4ffda3d",
     "dest_sha256": "62f8d06c194189e6158e5db3989e29a05b585c2d43e50394e1ebfd9ed4ffda3d"
   },
@@ -579,7 +579,7 @@
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/presets/fantasy_island.json",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "a5e45aeb9f626060ff474bb973c3fa1e25121d06b130f5d447df154d06a5d27d",
     "dest_sha256": "a5e45aeb9f626060ff474bb973c3fa1e25121d06b130f5d447df154d06a5d27d"
   },
@@ -587,7 +587,7 @@
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/presets/mythic_os.json",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "b6236ea91c9b2e8a90ac32970aa697eac7ec929bb8c3b7bb6eeabd5976aba49c",
     "dest_sha256": "b6236ea91c9b2e8a90ac32970aa697eac7ec929bb8c3b7bb6eeabd5976aba49c"
   },
@@ -595,7 +595,7 @@
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/presets/neon_poster.json",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "49a9ac8ffb71cc96fa40b9048075fa20e4cbffd31f4ff41d6880bb55da8ec91f",
     "dest_sha256": "49a9ac8ffb71cc96fa40b9048075fa20e4cbffd31f4ff41d6880bb55da8ec91f"
   },
@@ -603,7 +603,7 @@
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/presets/product_luxury.json",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "a79cb64dfd9724023229a7358db261f4b5b64b99eed750bbb3a8cdd5f34ab0c7",
     "dest_sha256": "a79cb64dfd9724023229a7358db261f4b5b64b99eed750bbb3a8cdd5f34ab0c7"
   },
@@ -611,184 +611,184 @@
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/project_analyzer.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "6cd7b8cdec810d289718df571c594cdd4e34ba3d2b36c876d677fbf418ab3747",
-    "dest_sha256": "2e540b55c2afc7a51441e931ad4b624830891f9e0d902ca14db832f576c5447a"
+    "dest_sha256": "e4df39f20e448cf5920bb8da5f73f62e095753f0a343d7afd041cd0b02476a37"
   },
   "src/eli_creation/engines/image_engine/prompt_compiler.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/prompt_compiler.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "8066cac615a0906f8ff7c160a326f4ff3ae2665756161f7607fb195677904121",
-    "dest_sha256": "eab09b5d741e7a7bb98191ec8a54a25abc43b03232976148fac5ec61c7d6c5dc"
+    "dest_sha256": "5ca62bbafbd1887dbdd171f4f1557ea308aa232b9e5b0b81fba5d9a627044475"
   },
   "src/eli_creation/engines/image_engine/quality.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/quality.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "6a5c4648135d28a7de1cd3401cbfe98c8f538ada9ebca4bfebc01d3b04b72aa1",
-    "dest_sha256": "b34d7097eccad4d0cdc031c2611e61650d772d2e0f9a677d9f0e33fe3c93f02b"
+    "dest_sha256": "09b0e0c386853c872aad7d42f1e510acecc24b1835700e591ae9e4913c69eba8"
   },
   "src/eli_creation/engines/image_engine/service.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/service.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "6847de9d6d7a16b370b3a5767952455a2333c0ba75fa7f03ee7b0461e3390717",
-    "dest_sha256": "d1e4594bb7ee17b4597d56cde3cdebcdb423800d4cbfe64162590a23cb77f7fe"
+    "dest_sha256": "fbd70d05daeebf50fe083dbe076501ea0fdaa9fb5d82e2a99718a25ba3b3d9cb"
   },
   "src/eli_creation/engines/image_engine/visual_core.py": {
     "from": "ELI_v3.0",
     "src": "eli/tools/image_engine/image_engine/visual_core.py",
     "mode": "copy",
-    "commit": "dde9f4eb56",
+    "commit": "8b35366641",
     "source_sha256": "a5319645b4245f72792d64a08bc1eb06c26ad5ebb5bd97cc0184416f859cf03e",
-    "dest_sha256": "a7163146e9b6d74751716a26a2c9446c31d21242ce6f6903a601e24c85a3f63c"
+    "dest_sha256": "4ceb1e7a75e30446fd3fcfd341160ecf7425f6c3933e8d07c93e68c8b05ca1a0"
   },
   "src/eli_creation/gui/licence_dialog.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/gui/licence_dialog.py",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
-    "source_sha256": "d55c07a583b6053c0ed816849536486418987937264915d853b66c2fbd20d38f",
+    "commit": "2abede02bc",
+    "source_sha256": "358fc5fd2334f5b88290cb2af84b2284422dd0d7c751e56a81a6c8b6ad3222bc",
     "dest_sha256": "43a8755b0e09409af539bddd6476ac2b1d0024912d5afea9ccbd3d63f86496d0"
   },
   "src/eli_creation/gui/theme.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/gui/theme.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "f05c1ef536d5efd2b945f48c2906f57f087892fe8fdf475cc2ca18fdeef8cc53",
-    "dest_sha256": "1c6028a1054a6d54c3aa901e2afb635b33c67d9728fde482d2c04d881e71d3e6"
+    "dest_sha256": "f8b68216c536cb112cddf6d27f803107567a2764ae5e499d1c37bc21d92d02cb"
   },
   "src/eli_creation/gui/widgets.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/gui/widgets.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "c53362bcc6639ce0547dde0df4bad743a164b457e006b4c7f6717aa4f841fe81",
-    "dest_sha256": "9a39dfd4737c139fa2078c83443d1876113eea2a1a658516e1bdf052da41c437"
+    "dest_sha256": "bc0b138599e64e094f5e6ef9aff8e51aa24d53f95a5dd7883466bec5702eca28"
   },
   "src/eli_creation/gui/zoom.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/gui/zoom.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "767798a0ef01b5871a4a070e5b86558675894502b11676c70571b51810e551b0",
-    "dest_sha256": "69d6399145d8d7c230e27ca69f53de91fc463433ff7a3ca614752d114becdc03"
+    "dest_sha256": "239a227a52a1fae92448305b8cb0040b9103a99e0e976d15657cee1928661ef4"
   },
   "src/eli_creation/licensing.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/licensing.py",
     "mode": "adapted",
-    "commit": "3b05ccd88f",
-    "source_sha256": "e3c06ff28cef6d54192eb27403f5160ded9800c8c37a3164615747a1d2939a58",
+    "commit": "2abede02bc",
+    "source_sha256": "08b61d13559919b8da7c9a842393aed30d9137376152fc16a2f9622ac18709cf",
     "dest_sha256": "b9f670b1935bf8f55d9b9e58ba6487f7012960369efcea862e9a90f25a3f0921"
   },
   "src/eli_creation/paths.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/paths.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "ddf33fbde004780585b72cdad70ae8c2b5438a3b06eca4e7225ea69a05592a26",
-    "dest_sha256": "6b5a02d7052e7a19aebb6f5683b88eee707f5fcfee6f53f1823e364daa21bcb9"
+    "dest_sha256": "fd0514ddf5b10d91fd1a11808e6758be0dbd01f0de9154fb5dbd62e5a3514059"
   },
   "src/eli_creation/persistence/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/persistence/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "dest_sha256": "65b12d046ed551a00e751f0e84ea86d9e36888ec263cb8aff117cfdf0ac684ac"
+    "dest_sha256": "0dc1cd0366a39b294d5411091606e9837a493c8b187bcdf3e755c5e95a797335"
   },
   "src/eli_creation/persistence/connect.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/persistence/connect.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "56e716ac209cc991f28efaa0fb0be4e532a297495c0481a43730c0d39352cb9e",
-    "dest_sha256": "05c035da58ba9e01038b9e36b5d6baa513bef067901c5232c2133735c62049c0"
+    "dest_sha256": "04636fd4cf9f7d45113632b488ec3c1cdfad408422e2dafd720329b924373826"
   },
   "src/eli_creation/ports/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/ports/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "dest_sha256": "6c03bee280502db62bebef3fa8e1af6300ddd476aee8997ed33001bfdecf5f61"
+    "dest_sha256": "1811b549f6623e4923197287239ef93bd1f29a33843a7f93b72e0d6bcf450070"
   },
   "src/eli_creation/ports/embedding.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/ports/embedding.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "319719cc13dbc3ebbbfbf944c27a4aa52b81120f56455ad50d86806265c63f53",
-    "dest_sha256": "d598829b8cd27dcae0519f51b48280c22a04d7817632bca6464032869a383a8f"
+    "dest_sha256": "4781281997ec79707e6d47b01ee68c9bc106ad38fae7af69d2e8df2e4e8a41c4"
   },
   "src/eli_creation/ports/inference.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/ports/inference.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "d5791e239487a3221aa60684a95fb9732041fad961f1994982470821568ea1d6",
-    "dest_sha256": "d8fd7e1c44febee54c4f12a99e1e0575bbc52f56f3210e8a145f4b9e2fdfe81f"
+    "dest_sha256": "7cd46a594723ffe2e6f46872c188391f6375b33997a202cb38d45ff5286047b7"
   },
   "src/eli_creation/ports/network.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/ports/network.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "835c6143d799cabb0de8173cbaff3e0adb051e15c406773dbe24f85db66c6bf3",
-    "dest_sha256": "f9c75e2f6f941fc910223da35b0ce2534a8eef2af75f018cbdc82cc4d7f5f16c"
+    "dest_sha256": "76efaffe084a9ccfb5e36deab9040243bb136bab741de1bdbd54a1ca7394de47"
   },
   "src/eli_creation/security/__init__.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/security/__init__.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "dest_sha256": "d48599b6d225776aed1ad887100d794bebcb04b6538e9bf69552f7d521da55b5"
+    "dest_sha256": "5474b1d27ae2f59fe1cdee8093a23886213028ae6d15c534209299725681be7e"
   },
   "src/eli_creation/security/authn.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/security/authn.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "d68f0d979101096dfe74eed328356eb7e934b7e0aebec4076bdefc09ff9210d6",
-    "dest_sha256": "8be8315ab6989f9310c8deca0b3a2de76af14ae559286f6dadecd2ab81d4b726"
+    "dest_sha256": "14241483ca13053036d8694e2664a3c2462224db216ad74999580a6cbdaa8eda"
   },
   "src/eli_creation/security/files.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/security/files.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "0728b0ce3c6513cf00a11147f4727be6e6349e5e83c781b453bb28bca074bc9e",
-    "dest_sha256": "425496269267d410c491bbd59a7dfb9fc2da1dd0094834c84386dee1e1e5d443"
+    "dest_sha256": "d251e492e8523ed345d2e1ad4886816dc42a5bd24a40b741eefb6461d928ad53"
   },
   "src/eli_creation/security/hard_offline.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/security/hard_offline.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "ae29db82c146d74081a519670e2e12c2595c6470f81c1f5f914aa1bafbc11c33",
-    "dest_sha256": "5d661dd8790dff69245e092fb96ec541d1113473aae1bb405fe5564c17c87ee4"
+    "dest_sha256": "7a82023e1bf7a60b2c387e2e30029b8c8c44bae30f94228f60f8d7ade1906eef"
   },
   "src/eli_creation/security/supply_chain.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/security/supply_chain.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "82639b9d1f513c6e4a16e9610ef55f613b8b61994a8b4c0286f7c6d912dacf3e",
-    "dest_sha256": "6f639a7e339f064c26cd73363d598533ad394b50ed00daf700e205355aef9733"
+    "dest_sha256": "e6a0c1747d62c9c8c218b10cd7ac7f6ffa7e45798584856b8484506343d369af"
   },
   "src/eli_creation/system_libraries.py": {
     "from": "ELI_Legal",
     "src": "src/eli_legal/system_libraries.py",
     "mode": "copy",
-    "commit": "3b05ccd88f",
+    "commit": "2abede02bc",
     "source_sha256": "937f88a7dd5e010274ae6b0dc2bdf5eea9b79ef03b3ce5551cd618ea0803ee37",
-    "dest_sha256": "87f324bff838fb7ea755436d4eebbc174fe658c9dccf5131fa3b4fe7369b51b0"
+    "dest_sha256": "b77aa98fad04086b438ec2ba46dee2e736bf0bf9928db6a97a7c24ec4de4e59d"
   }
 }

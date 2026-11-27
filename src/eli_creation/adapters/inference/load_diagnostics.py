@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/load_diagnostics.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/load_diagnostics.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """What llama.cpp said while it loaded a model: kept, read, and turned into a reason.
 
 llama.cpp writes through its own C log callback, so with ``verbose=False`` the one line that

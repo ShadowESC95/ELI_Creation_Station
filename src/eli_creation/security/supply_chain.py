@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/security/supply_chain.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/security/supply_chain.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """What ELI Creation Station is built from, how a weakness in it is reported, and how a release is audited.
 
 Every release carries a CycloneDX bill of materials of the Python components the installers are

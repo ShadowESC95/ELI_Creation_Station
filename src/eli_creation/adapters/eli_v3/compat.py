@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/eli_v3/compat.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/eli_v3/compat.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 from __future__ import annotations
 
 import importlib

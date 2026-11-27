@@ -1,8 +1,10 @@
-# Reused from ELI_v3.0: eli/tools/image_engine/image_engine/memory.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/tools/image_engine/image_engine/memory.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 from __future__ import annotations
 
 import json
+from contextlib import contextmanager
 import sqlite3
+from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
@@ -17,10 +19,18 @@ class ImageMemory:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._init()
 
-    def connect(self) -> sqlite3.Connection:
+    @contextmanager
+    def connect(self) -> Iterator[sqlite3.Connection]:
+        """A connection for one ``with`` block: committed (or rolled back) and closed at its end.
+        A sqlite3 connection's own ``with`` only commits, leaving the file open until garbage
+        collection, which on Windows keeps it locked against removal."""
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init(self) -> None:
         with self.connect() as conn:

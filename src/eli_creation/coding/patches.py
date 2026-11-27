@@ -1,4 +1,4 @@
-# Reused from ELI_v3.0: eli/coding/patches.py @ dde9f4eb56. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
+# Reused from ELI_v3.0: eli/coding/patches.py @ 8b35366641. Do not edit here: change it in ELI_v3.0 and run scripts/sync_reused.py.
 """What a coding-agent candidate would change in one of ELI's own files, as a proposal.
 
 Nothing here writes. A candidate becomes a proposal for the one file it was written for: the

@@ -1,4 +1,4 @@
-# Reused from ELI_Legal: src/eli_legal/adapters/inference/gguf_sizes.py @ 3b05ccd88f. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
+# Reused from ELI_Legal: src/eli_legal/adapters/inference/gguf_sizes.py @ 2abede02bc. Do not edit here: change it in ELI_Legal and run scripts/sync_reused.py.
 """What a GGUF model costs in memory, read from the file and corrected by what llama.cpp reports.
 
 Two numbers decide every fit: the bytes each layer puts on the graphics card, and the bytes of
