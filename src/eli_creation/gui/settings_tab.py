@@ -96,7 +96,7 @@ class SettingsTab(QWidget):
         f.addRow("", self.remote)
         f.addRow("", state)
         f.addRow("", button("Apply (takes effect at the next start)", self._apply_main))
-        return card("Main model: the one that stays loaded", form)
+        return card("Main model: ELI's own, loaded between jobs", form)
 
     def _choose_gguf(self) -> None:
         path, _ = QFileDialog.getOpenFileName(self, "Main model", "", "GGUF models (*.gguf)")
@@ -124,8 +124,8 @@ class SettingsTab(QWidget):
         self.most.setRange(0, 8)
         self.most.setSpecialValueText("by this machine's tier")
         self.most.setValue(s.max_resident_specialists)
-        self.swap = QCheckBox("Let the main model step aside for a job that cannot fit beside it "
-                              "(it is loaded again straight after)")
+        self.swap = QCheckBox("Let the main model step aside for a heavy job that cannot fit beside it "
+                              "(it is loaded again, in the background, as soon as the job is done)")
         self.swap.setChecked(s.allow_main_swap)
         form = QWidget()
         f = QFormLayout(form)
@@ -133,7 +133,7 @@ class SettingsTab(QWidget):
         f.addRow("Specialists loaded at once", self.most)
         f.addRow("", self.swap)
         f.addRow("", button("Apply", self._apply_loading))
-        return card("Loading: only the main model stays loaded", label(
+        return card("Loading: the main model stays loaded between jobs", label(
             "Image, video, music and other specialist models load in a process of their own when a job "
             "needs them, and are unloaded when idle, which gives all their memory back.", "muted", wrap=True), form)
 

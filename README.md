@@ -27,16 +27,17 @@ asset, a look or a voice drifting), offers it, and can ask to pause and talk the
 choose how much: off, quiet, helpful or active. Opened by ELI v3, it is ELI v3's own ELI: its eyes,
 attention and voice. Nothing is looked at until you turn it on, and nothing leaves the machine.
 
-## One main model stays loaded; the others load when needed
+## The main model stays loaded between jobs; the others load when needed
 
 The main model (a GGUF file, a model server on this machine, or ELI v3's model when ELI v3 opens
-Creation Station) stays loaded: it writes, plans, codes and is ELI's voice. Every specialist model
+Creation Station) stays loaded between jobs: it writes, plans, codes and is ELI's voice. When a heavy
+image or video job needs its memory, it steps aside for that job and is loaded again, in the
+background, as soon as the job is done (Settings → Models can keep it loaded instead). Every specialist model
 (images, video, music, speech, 3D, upscaling, reading the screen) is loaded **in a process of its
 own when a job needs it**, and unloaded when it has been idle, which gives all of its memory back
 on every vendor's graphics driver. Before loading, the planner finds room: beside what is loaded,
-on another card, by unloading the longest-idle specialist, or on the processor; it never unloads
-the main model unless you allowed it to step aside for one job. Otherwise the job is refused with
-the reason. See [docs/MODELS.md](docs/MODELS.md).
+on another card, by unloading the longest-idle specialist, by letting the main model step aside
+for the job, or on the processor. Otherwise the job is refused with the reason. See [docs/MODELS.md](docs/MODELS.md).
 
 ## Every machine, honestly
 

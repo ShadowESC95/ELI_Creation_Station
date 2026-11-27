@@ -40,7 +40,8 @@ class Settings:
     # Off: the main model always stays loaded, and a specialist that cannot fit beside it is
     # refused with the reason. On: on a machine with too little memory for both, the main model
     # steps aside for that one job and is loaded again straight after.
-    allow_main_swap: bool = False
+    # the main model steps aside for a job that cannot fit beside it, and comes back after
+    allow_main_swap: bool = True
     # Memory kept free on every device beyond what the models are expected to take.
     memory_reserve_mb: int = 768
 

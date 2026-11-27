@@ -179,8 +179,9 @@ class Companion:
             'Answer with JSON only: {"kind": "...", "title": "one sentence", "why": "one sentence", '
             '"severity": "low|medium|high"} or {"kind": "none"}'
         )
+        # never waits: while the main model has stepped aside for a job, ELI keeps its thoughts
         answer = self.studio.main.generate(system=policy.system_prompt_addendum(), prompt=prompt,
-                                           max_tokens=300, temperature=0.4, json_mode=True)
+                                           max_tokens=300, temperature=0.4, json_mode=True, wait=0)
         try:
             said = parse_json(answer)
         except ValueError:

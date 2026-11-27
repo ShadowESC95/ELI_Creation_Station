@@ -2,18 +2,20 @@
 
 ## The rule
 
-**One main model stays loaded; every specialist loads when a job needs it and unloads when idle.**
+**The main model stays loaded between jobs, and steps aside when a heavy job needs its memory; every
+specialist loads when a job needs it and unloads when idle.**
 
 | | Main model | Specialist models |
 |---|---|---|
 | What | The language model: writing, planning, code, ELI's voice | Images, video, music, speech, captions, 3D, upscaling, background removal, reading the screen |
 | Where it runs | In process (a GGUF through llama.cpp, sized to the memory free), a model server, or ELI v3's own | A worker process of its own (`runtimes/`), in an environment built for its engine (`runtime/workers/<name>`) |
-| When | Loaded at start, kept loaded | Loaded for a job; unloaded after `idle_unload_seconds` (Settings; 0 = at once) |
-| Unloaded | At shut-down only, or for one job if you allowed it to step aside | By ending its worker, which returns every byte to every vendor's driver |
+| When | Loaded at start, kept loaded between jobs | Loaded for a job; unloaded after `idle_unload_seconds` (Settings; 0 = at once) |
+| Unloaded | For a job that cannot fit beside it (it is loaded again in the background as soon as that job is done; Settings → Models can turn this off), and at shut-down | By ending its worker, which returns every byte to every vendor's driver |
 
 How the planner finds room for a specialist (`models/manager.py`), in order: beside what is loaded on
-a card it can use; on another card; by unloading the longest-idle specialists; on the processor, if
-the model may run there; by letting the main model step aside for this one job, only if allowed.
+a card it can use; on another card; by unloading the longest-idle specialists; by letting the main
+model step aside for this one job (on by default; while it is away, ELI says so, and a job that
+needs the main model waits for it to come back); on the processor, if the model may run there.
 Otherwise the job is refused with the reason and nothing is unloaded. How many specialists may be
 loaded at once follows the tier (1 on T0-T2, 2 on T3, 3 on T4) unless set.
 

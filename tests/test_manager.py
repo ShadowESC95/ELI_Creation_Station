@@ -1,4 +1,5 @@
-"""The rule: the main model stays loaded; a specialist loads for a job and unloads when idle."""
+"""The rule: the main model stays loaded between jobs and steps aside for a heavy one; a specialist
+loads for a job and unloads when idle."""
 
 from __future__ import annotations
 
@@ -18,13 +19,16 @@ class Main:
     def __init__(self, memory_mb=5000, device="gpu:0"):
         self.memory_mb, self.device, self.suspended, self.resumed = memory_mb, device, 0, 0
 
-    def suspend(self):
+    def suspend(self, for_what=""):
         self.suspended += 1
-        self.state = "unloaded"
+        self.state, self.for_what = "stepped_aside", for_what
 
-    def resume(self):
+    def resume(self, *, wait=False):
         self.resumed += 1
         self.state = "ready"
+
+    def wait_settled(self, timeout=None):
+        return True
 
 
 class FakeWorker:
@@ -125,7 +129,7 @@ def test_the_main_model_steps_aside_only_when_allowed_and_comes_back(clock):
     main = Main(memory_mb=6000)
     m = manager(clock, specs=[spec("big", 6000)], main=main, policy=Policy(allow_main_swap=True, reserve_mb=0))
     with m.use("big"):
-        assert main.suspended == 1 and main.state == "unloaded"
+        assert main.suspended == 1 and main.state == "stepped_aside" and main.for_what == "big"
     assert main.resumed == 1 and main.state == "ready"
     assert m.resident_ids() == [], "a model the main model stepped aside for goes when its job is done"
 
@@ -142,3 +146,66 @@ def test_a_planned_model_is_not_loaded(clock):
     with pytest.raises(Refused, match="planned"):
         with m.use("later"):
             pass
+
+
+def test_the_main_model_steps_aside_before_a_heavy_model_goes_to_the_processor(clock):
+    """A heavy image or video model on the processor takes minutes where the card takes seconds:
+    with stepping aside allowed (the default setting), the card is freed instead."""
+    main = Main(memory_mb=7000)
+    m = manager(clock, specs=[spec("img", 6000, cpu_ok=True, ram_mb=9000)], main=main,
+                policy=Policy(allow_main_swap=True, reserve_mb=0))
+    with m.use("img") as model:
+        assert model.device == "gpu:0" and main.suspended == 1
+    assert main.resumed == 1
+
+
+def test_stepping_aside_is_on_unless_turned_off():
+    from eli_creation.settings import Settings
+
+    assert Settings().allow_main_swap and Policy.from_settings(Settings(), "T2").allow_main_swap
+    assert not Policy.from_settings(Settings(allow_main_swap=False), "T2").allow_main_swap
+
+
+def test_the_real_main_model_steps_aside_and_comes_back_in_the_background(tmp_path):
+    from types import SimpleNamespace
+
+    from eli_creation.models.main import MainModel
+
+    weights = tmp_path / "main.gguf"
+    weights.write_bytes(b"0" * 4096)
+    backend = SimpleNamespace(available=True, path=weights,
+                              warm=lambda: SimpleNamespace(as_dict=lambda: {"layers_on_card": 10, "layers_total": 10}))
+    main = MainModel(backend, source="gguf", name="Qwen3 4B")
+    main.load()
+    assert main.state == "ready" and main.device == "gpu:0"
+    main.suspend("Wan 2.1 video")
+    assert main.state == "stepped_aside" and not main.available
+    assert "stepped aside to give Wan 2.1 video its memory" in main.why_unavailable
+    main.resume()  # in the background: the job's result is shown without waiting for it
+    assert main.wait_settled(10) and main.state == "ready" and main.stepped_aside_for == ""
+
+
+
+def test_a_job_that_needs_the_main_model_waits_while_it_has_stepped_aside(tmp_path):
+    import threading
+    from types import SimpleNamespace
+
+    from eli_creation.models.main import MainModel
+
+    weights = tmp_path / "main.gguf"
+    weights.write_bytes(b"0" * 4096)
+    backend = SimpleNamespace(available=True, path=weights,
+                              warm=lambda: SimpleNamespace(as_dict=lambda: {"layers_on_card": 1, "layers_total": 1}),
+                              generate=lambda **kw: "a caption")
+    main = MainModel(backend, source="gguf", name="Qwen3 4B")
+    main.load()
+    main.suspend("an image job")
+    threading.Timer(0.5, main.resume).start()  # the image job finishes
+    assert main.generate(system="", prompt="write a caption", wait=10) == "a caption"
+    main.suspend("an image job")
+    import pytest as _pytest
+
+    from eli_creation.models.main import MainModelUnavailable
+
+    with _pytest.raises(MainModelUnavailable, match="stepped aside"):
+        main.generate(system="", prompt="a thought", wait=0)  # ELI's own thoughts never wait

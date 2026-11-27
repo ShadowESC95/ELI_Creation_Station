@@ -46,6 +46,9 @@ class MainModel:
         self._state = "ready" if source in ("eli_v3", "openai") and not why else ("unavailable" if why else "unloaded")
         self._error = ""
         self._lock = threading.Lock()
+        self._settled = threading.Event()  # set while it is not loading
+        self._settled.set()
+        self.stepped_aside_for = ""
         self.memory_mb = 0
         self.device = ""
         self.report: dict[str, Any] = {}
@@ -65,6 +68,9 @@ class MainModel:
             return self._why
         if self._state == "loading":
             return f"the main model ({self.name}) is still loading"
+        if self._state == "stepped_aside":
+            return (f"the main model ({self.name}) has stepped aside to give "
+                    f"{self.stepped_aside_for or 'a job'} its memory, and is loaded again as soon as that is done")
         if self._error:
             return f"the main model could not be loaded: {self._error}"
         return f"the main model ({self.name}) is not loaded"
@@ -72,6 +78,12 @@ class MainModel:
     # ── loading ───────────────────────────────────────────────────────────
     def load(self) -> None:
         """Load it now, if it is a file (blocking: call it on a background thread)."""
+        try:
+            self._load()
+        finally:
+            self._settled.set()
+
+    def _load(self) -> None:
         if self.source != "gguf" or self._why:
             return
         with self._lock:
@@ -94,6 +106,7 @@ class MainModel:
                 log.warning("the main model did not load: %s", self._error)
 
     def load_in_background(self) -> threading.Thread:
+        self._settled.clear()  # anyone waiting for it waits for this load
         thread = threading.Thread(target=self.load, name="eli-creation-main-model", daemon=True)
         thread.start()
         return thread
@@ -107,16 +120,33 @@ class MainModel:
             gguf.release()
             self._state, self.memory_mb, self.device = "unloaded", 0, ""
 
-    def suspend(self) -> None:
-        """Step aside for one job (only when the person allowed it)."""
+    def suspend(self, for_what: str = "") -> None:
+        """Step aside for one job that needs its memory (Settings → Models allows it; on by
+        default). It is loaded again when that job's model is unloaded (resume)."""
         self.unload()
+        if self.source == "gguf":
+            self._state, self.stepped_aside_for = "stepped_aside", for_what
 
-    def resume(self) -> None:
-        self.load()
+    def resume(self, *, wait: bool = False) -> None:
+        """Load it again after stepping aside: in the background, so the job's result is shown at
+        once and ELI comes back a moment later (``wait`` to load it here instead)."""
+        self.stepped_aside_for = ""
+        if wait:
+            self.load()
+        else:
+            self.load_in_background()
+
+    def wait_settled(self, timeout: float | None = None) -> bool:
+        """Wait until it is not loading (loaded, failed or unloaded). Returns False on timeout."""
+        return self._settled.wait(timeout)
 
     # ── using ─────────────────────────────────────────────────────────────
     def generate(self, *, system: str, prompt: str, max_tokens: int = 1024, temperature: float = 0.7,
-                 json_mode: bool = False) -> str:
+                 json_mode: bool = False, wait: float = 600.0) -> str:
+        """``wait``: how long to wait for the main model while it has stepped aside for a job, or is
+        loading (0: not at all). Every caller runs off the window's thread."""
+        if wait > 0 and self._state in ("stepped_aside", "loading"):
+            self._wait_back(wait)
         if not self.available:
             raise MainModelUnavailable(self.why_unavailable)
         kwargs: dict[str, Any] = {"system": system, "prompt": prompt, "max_tokens": max_tokens,
@@ -127,6 +157,13 @@ class MainModel:
             return str(self.backend.generate(**kwargs))
         except Exception as exc:
             raise MainModelUnavailable(f"{type(exc).__name__}: {str(exc)[:240]}") from exc
+
+    def _wait_back(self, timeout: float) -> None:
+        import time
+
+        deadline = time.monotonic() + timeout
+        while self._state in ("stepped_aside", "loading") and time.monotonic() < deadline:
+            time.sleep(0.25)
 
     def as_generate(self, *, system: str = "", temperature: float = 0.2):
         """A ``generate(prompt) -> str`` for ELI v3's coding agent (eli_creation.coding), which takes

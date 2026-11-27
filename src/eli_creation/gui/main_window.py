@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
     def refresh_status(self) -> None:
         main = self.studio.main
         colour = theme.colour_for(main.state)
-        self.main_chip.setText(f"Main model: {main.name} ({main.state})")
+        self.main_chip.setText(f"Main model: {main.name} ({main.state.replace('_', ' ')})")
         self.main_chip.setStyleSheet(f"color: {colour}; padding: 0 8px;")
         loaded = [s for s in self.studio.manager.status() if s.role == "specialist" and s.state in ("loading", "ready", "busy", "unloading")]
         self.models_chip.setText("Specialists: " + (", ".join(f"{s.title} ({s.state})" for s in loaded) or "none loaded"))

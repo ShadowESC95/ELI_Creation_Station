@@ -256,11 +256,8 @@ class ModelManager:
                 placed = self._fit(spec.memory_mb, device, by_count)
                 if placed is not None:
                     return placed
-            if spec.cpu_ok:
-                need = spec.ram_mb or spec.memory_mb
-                placed = self._fit(need, "cpu", by_count, note="on the processor: slower")
-                if placed is not None:
-                    return placed
+            # Before the processor: a heavy model there takes minutes where the card takes seconds,
+            # and the main model is loaded again (in the background) as soon as the job is done.
             if self.policy.allow_main_swap and self.main.available and self.main.device in gpu_devices:
                 device = self.main.device
                 every_idle = tuple(dict.fromkeys([*by_count, *(r.spec.id for r in self._idle_on(device))]))
@@ -270,6 +267,11 @@ class ModelManager:
                 if room >= spec.memory_mb:
                     return Placement(device, spec.memory_mb, every_idle, swap_main=True,
                                      note="the main model steps aside for this job")
+            if spec.cpu_ok:
+                need = spec.ram_mb or spec.memory_mb
+                placed = self._fit(need, "cpu", by_count, note="on the processor: slower")
+                if placed is not None:
+                    return placed
         best = max(self.machine.accelerators, key=lambda a: a.usable_mb, default=None)
         where = f"{best.describe()}" if best is not None else "no graphics card"
         hint = "" if self.policy.allow_main_swap else (
@@ -327,13 +329,18 @@ class ModelManager:
             held = self._take(model_id)  # loaded by another job while this one waited
             if held is not None:
                 return held
+            # a main model coming back after stepping aside is let finish, so the two never load
+            # into the same memory at once
+            wait = getattr(self.main, "wait_settled", None)
+            if wait is not None:
+                wait(600)
             with self._cond:
                 placement = self.plan(spec)
             for victim in placement.evict:
                 self._stop(victim)
             if placement.swap_main:
                 log.info("the main model steps aside for %s", spec.id)
-                self.main.suspend()
+                self.main.suspend(spec.title)
             try:
                 worker = self._launch(spec, placement.device)
             except Exception as exc:
