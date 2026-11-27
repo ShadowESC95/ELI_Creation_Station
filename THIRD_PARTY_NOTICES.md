@@ -9,6 +9,7 @@ distribution; an installer must ship them.
 |---|---|---|
 | cryptography | 46.0.5 | Apache-2.0 OR BSD-3-Clause |
 | eli-sdk | 1.3.0 | Apache-2.0 |
+| numpy | 2.3.5 | BSD-3-Clause |
 | pillow | 12.1.1 | MIT-CMU |
 | psutil | 7.1.0 | BSD-3-Clause |
 | PySide6 | 6.10.2 | LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only |

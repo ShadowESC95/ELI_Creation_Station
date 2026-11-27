@@ -16,6 +16,8 @@ dependencies = [
   "Pillow>=10.3",
   # Memory and processor figures read the same way on every system, for the hardware tiers (BSD-3-Clause).
   "psutil>=5.9",
+  # Arrays for the procedural image engine and its quality checks (BSD-3-Clause).
+  "numpy>=1.24",
 ]
 
 [project.optional-dependencies]
