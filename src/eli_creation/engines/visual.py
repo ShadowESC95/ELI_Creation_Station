@@ -21,6 +21,13 @@ SIZES = {"square": (1024, 1024), "portrait": (832, 1216), "landscape": (1216, 83
          "story": (768, 1344)}
 
 
+def _title(request: dict[str, Any], n: int) -> str:
+    """What a person calls an image: its prompt, numbered when one prompt made several."""
+    prompt = " ".join(str(request.get("prompt") or "Image").split())
+    short = prompt if len(prompt) <= 72 else prompt[:71].rstrip() + "…"
+    return short if int(request.get("count", 1) or 1) <= 1 else f"{short} ({n + 1})"
+
+
 def _size(request: dict[str, Any]) -> tuple[int, int]:
     return SIZES.get(str(request.get("aspect", "square")), SIZES["square"])
 
@@ -57,7 +64,7 @@ class ProceduralImages(Engine):
                                   digital_source_type=manifests.ALGORITHMIC, project=r.get("project", ""))
             with Image.open(artifact.path) as im:
                 marking.save_marked(im.copy(), target, man, visible_label=studio.settings.visible_ai_label)
-            job.assets.append(studio.library.add(target, manifest=man, title=Path(artifact.path).stem, job=job.id))
+            job.assets.append(studio.library.add(target, manifest=man, title=_title(r, n), job=job.id))
 
 
 class DiffusionImages(Engine):
@@ -94,7 +101,7 @@ class DiffusionImages(Engine):
                                   digital_source_type=manifests.TRAINED, project=r.get("project", ""))
             with Image.open(source) as im:
                 marking.save_marked(im.copy(), target, man, visible_label=studio.settings.visible_ai_label)
-            job.assets.append(studio.library.add(target, manifest=man, title=target.stem, job=job.id))
+            job.assets.append(studio.library.add(target, manifest=man, title=_title(r, n), job=job.id))
         shutil.rmtree(out_dir, ignore_errors=True)
 
 
@@ -140,7 +147,7 @@ class ImageEdits(Engine):
                               digital_source_type=_source_type(studio, source), edits=done,
                               project=r.get("project", ""))
         marking.save_marked(image, target, man, visible_label=studio.settings.visible_ai_label)
-        job.assets.append(studio.library.add(target, manifest=man, title=target.stem, job=job.id))
+        job.assets.append(studio.library.add(target, manifest=man, title=f"{source.stem} (edited)", job=job.id))
 
     def apply(self, image: Image.Image, op: dict[str, Any]) -> Image.Image:
         kind = op.get("op")
@@ -238,7 +245,7 @@ class Animatic(Engine):
                            quality=80, xmp=xmp)
         except TypeError:
             frames[0].save(target, save_all=True, append_images=frames[1:], duration=durations, loop=0, quality=80)
-        job.assets.append(studio.library.add(target, manifest=man, title=target.stem, job=job.id))
+        job.assets.append(studio.library.add(target, manifest=man, title=str(r.get("title") or "Animatic"), job=job.id))
 
 
 class Planned(Engine):

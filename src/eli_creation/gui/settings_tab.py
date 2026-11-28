@@ -22,7 +22,7 @@ from PySide6.QtWidgets import (
 
 from eli_creation import PRODUCT, TITLE, __version__
 from eli_creation.gui import theme
-from eli_creation.gui.studio_tab import Bridge
+from eli_creation.gui.bridge import Bridge
 from eli_creation.gui.widgets import button, card, label, row, table
 from eli_creation.tiers import TIER_EXAMPLES, TIER_LABELS
 
@@ -36,7 +36,6 @@ class SettingsTab(QWidget):
         self.studio = studio
         body = QWidget()
         lay = QVBoxLayout(body)
-        lay.addWidget(label("Settings", "title"))
         lay.addWidget(self._machine())
         lay.addWidget(self._main_model())
         lay.addWidget(self._loading())

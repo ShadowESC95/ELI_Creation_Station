@@ -61,6 +61,11 @@ class Layout:
         return self.root / "jobs"
 
     @property
+    def cache(self) -> Path:
+        """What the window keeps to be quick (style previews): safe to delete at any time."""
+        return self.root / "cache"
+
+    @property
     def logs(self) -> Path:
         return self.root / "logs"
 

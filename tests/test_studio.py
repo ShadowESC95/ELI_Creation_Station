@@ -70,18 +70,21 @@ def test_the_companion_says_nothing_unasked_without_a_main_model(studio: Studio)
     assert not ok and "main model" in why
 
 
-def test_the_window_has_the_seven_tabs_in_order(studio: Studio):
+def test_the_window_has_every_studio_in_its_rail(studio: Studio):
     pytest.importorskip("PySide6")
     from PySide6.QtWidgets import QApplication
 
-    from eli_creation.gui.main_window import MainWindow
+    from eli_creation.gui.main_window import ORDER, MainWindow
 
     app = QApplication.instance() or QApplication([])
+    studio.settings.extra["ui"] = {"style_previews": False}
     window = MainWindow(studio)
-    names = [window.tabs.tabText(i) for i in range(window.tabs.count())]
-    assert names == ["Socials", "Images", "Videos", "Games", "Editing", "Coding", "Settings"]
-    images = window.tabs.widget(1)
-    assert images.engine_id == "images.procedural", "a tab opens on an engine this machine can run"
+    assert list(window.pages) == list(ORDER) == ["home", "socials", "images", "videos", "games", "editing",
+                                                 "coding", "library", "settings"]
+    assert list(window.rail.buttons) == list(ORDER)
+    assert window.current == "home"
+    images = window.pages["images"]
+    assert images.engines.current == "images.procedural", "a studio opens on an engine this machine can run"
     window.timer.stop()
     window.eli.timer.stop()
     app.processEvents()

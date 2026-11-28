@@ -17,7 +17,7 @@ def main(argv: list[str] | None = None) -> int:
     from PySide6.QtWidgets import QApplication, QMessageBox
 
     from eli_creation import bundle, licensing
-    from eli_creation.gui import theme, zoom
+    from eli_creation.gui import design, theme, zoom
     from eli_creation.gui.licence_dialog import LicenceDialog, trial_notice
     from eli_creation.gui.main_window import MainWindow
     from eli_creation.services import Studio
@@ -29,7 +29,7 @@ def main(argv: list[str] | None = None) -> int:
     if ICON.is_file():
         app.setWindowIcon(QIcon(str(ICON)))
     zoom.install(app)
-    app.setStyleSheet(theme.stylesheet(zoom.level()))
+    app.setStyleSheet(theme.stylesheet(zoom.level()) + design.stylesheet(zoom.level()))
 
     standing = licensing.standing(start=True)
     if not standing.granted:

@@ -9,19 +9,28 @@ its own that ELI v3 can open in place of its window, or that runs on its own wit
 
 **Version 0.1.0 · an early build.** Linux, Windows, macOS.
 
-## The tabs
+## The studios
 
-| Tab | What it makes today | Coming, shown in the app with what your machine needs |
+| Studio | What it makes today | Coming, shown in the app with what your machine needs |
 |---|---|---|
-| **Socials** | Posts for X, Threads, Bluesky, Instagram, TikTok, LinkedIn, Facebook and YouTube from one brief, in your voice, within each platform's limit | A content calendar; thumbnails in each platform's shape |
-| **Images** | With a local image model (SSD-1B now; FLUX.1 schnell and others as they are added), or ELI v3's procedural renderer on any machine | stable-diffusion.cpp for AMD, Intel and Apple through Vulkan and Metal |
-| **Videos** | Animatics: images in order, timed and crossfaded | Text and image to video, narration, captions, music |
-| **Games** | A game designed from a pitch, and played in a browser from one HTML file | Played in ELI VR (the kinds are the ones ELI VR plays); 3D assets |
-| **Editing** | Crop to a platform's shape, resize, enlarge, turn, adjust, sharpen, caption, convert | AI upscale; background removal |
-| **Coding** | ELI v3's coding agent: it plans, writes, runs and repairs code against tests it writes | |
+| **Home** | A line to say what to make and where, the studios with what this machine can do in each, what was made last | |
+| **Socials** | Posts for X, Threads, Bluesky, Instagram, TikTok, LinkedIn, Facebook and YouTube from one brief, in your voice, within each platform's limit, each draft shown as it reads there with its share of the limit | A content calendar; thumbnails in each platform's shape |
+| **Images** | With a local image model (SSD-1B now; FLUX.1 schnell and others as they are added), or ELI v3's procedural renderer on any machine; styles shown as pictures rendered on this machine; seeds kept or rolled; prompts improved by ELI | stable-diffusion.cpp for AMD, Intel and Apple through Vulkan and Metal |
+| **Videos** | Animatics: a storyboard of pictures in order, played in the window as it will move, then made | Text and image to video, narration, captions, music |
+| **Games** | A game designed from a pitch, shown as a design card, and played in a browser from one HTML file | Played in ELI VR (the kinds are the ones ELI VR plays); 3D assets |
+| **Editing** | Crop to a platform's shape, turn, mirror, light and colour, sharpen, black and white, caption, resize, convert, every change previewed as it is made | AI upscale; background removal |
+| **Coding** | ELI v3's coding agent: it plans, writes, runs and repairs code against tests it writes; the code shown highlighted with whether it passed | |
+| **Library** | Everything made, by kind, project and name, each with its record: the models that made it, their licences, whether a model did | |
 | **Settings** | This machine and its tier, the main model, how models load, the models, ELI, provenance, the licence | |
 
-**ELI beside the tabs.** With your permission ELI follows the project you are working on (its folder,
+**The window.** The studios down the left (each in its own colour, marked while something of it is
+running); the project and a search for anything above (Ctrl+K: a studio, an action, something made);
+what is running and what finished under the activity button; ELI on the right. Work in progress shows
+in the studio's gallery where its results will appear. Ctrl+Enter creates, Ctrl+1 to Ctrl+9 open the
+studios, Ctrl+. shows or hides ELI. The look is drawn by the studio itself (its icons too), so it is the
+same on Windows, macOS and Linux.
+
+**ELI beside the studios.** With your permission ELI follows the project you are working on (its folder,
 and the screen if you allow it), notices what matters (a platform's limit, a licence warning on an
 asset, a look or a voice drifting), offers it, and can ask to pause and talk the project through. You
 choose how much: off, quiet, helpful or active. Opened by ELI v3, it is ELI v3's own ELI: its eyes,

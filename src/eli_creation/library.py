@@ -133,6 +133,15 @@ class Library:
             rows = self._db.execute(query, args).fetchall()
         return [Asset(r[0], r[1], Path(r[2]), r[3], r[4], r[5], r[6], r[7], bool(r[8])) for r in rows]
 
+    def projects(self) -> list[str]:
+        """Every project something was made for, most recently used first."""
+        with self._lock:
+            rows = self._db.execute(
+                "SELECT project, MAX(created) AS last FROM assets WHERE project != '' GROUP BY project"
+                " ORDER BY last DESC"
+            ).fetchall()
+        return [str(r[0]) for r in rows]
+
     def close(self) -> None:
         with self._lock:
             self._db.close()
