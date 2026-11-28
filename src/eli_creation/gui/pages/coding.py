@@ -121,9 +121,25 @@ class CodingPage(StudioPage):
         head.addStretch(1)
         head.addWidget(ui.button("Copy", self._copy, icon="copy", variant="flat"))
         head.addWidget(ui.button("Open", self._open, icon="external", variant="flat"))
+        self.explain_button = ui.button("ELI: explain it", lambda: self.ask_eli("explain"), icon="sparkles",
+                                        variant="flat")
+        self.review_button = ui.button("ELI: review it", lambda: self.ask_eli("review"), icon="eye", variant="flat")
+        improve = ui.button("Improve it", self.improve, icon="wand", variant="flat",
+                            tip="Ask the coding agent to improve this code, with its tests")
+        eli_row = QHBoxLayout()
+        eli_row.addWidget(self.explain_button)
+        eli_row.addWidget(self.review_button)
+        eli_row.addWidget(improve)
+        eli_row.addStretch(1)
+        self.eli_notes = QPlainTextEdit()
+        self.eli_notes.setReadOnly(True)
+        self.eli_notes.setMaximumHeight(200)
+        self.eli_notes.hide()
         right = QVBoxLayout()
         right.addLayout(head)
         right.addWidget(self.code, 1)
+        right.addLayout(eli_row)
+        right.addWidget(self.eli_notes)
         columns = QHBoxLayout()
         columns.setSpacing(22)
         columns.addWidget(composer, 0, Qt.AlignmentFlag.AlignTop)
@@ -133,8 +149,8 @@ class CodingPage(StudioPage):
         lay.setContentsMargins(32, 26, 32, 20)
         lay.setSpacing(18)
         lay.addLayout(self.header("Coding", "ELI v3's coding agent on the main model: it plans, writes, runs and "
-                                            "repairs code against tests it writes. Scripts, tools, web pages, "
-                                            "game logic."))
+                                            "repairs code against tests it writes. ELI explains and reviews any of "
+                                            "it, and improves it on request."))
         lay.addWidget(self.engines)
         lay.addLayout(columns)
         lay.addLayout(self.gallery_bar("Your code"))
@@ -189,6 +205,45 @@ class CodingPage(StudioPage):
             self.show_code(tile.path)
             return
         super().act(name, tile)
+
+    def ask_eli(self, what: str) -> None:
+        code = self.code.toPlainText().strip()
+        if not code:
+            self.shell.toast("Open some code first.", "warn")
+            return
+        if not self.studio.main.available:
+            self.shell.toast(f"ELI needs the main model: {self.studio.main.why_unavailable}", "warn")
+            return
+        ask = {"explain": "Explain what this code does, step by step, in plain words, for someone learning: what goes "
+                          "in, what comes out, and anything surprising.",
+               "review": "Review this code like a careful senior engineer: bugs, edge cases, security, clarity. A "
+                         "short list, most important first, each with the fix."}[what]
+        button = self.explain_button if what == "explain" else self.review_button
+        button.setEnabled(False)
+        self.eli_notes.show()
+        self.eli_notes.setPlainText("ELI is reading the code…")
+
+        def work() -> str:
+            return self.studio.main.generate(system="You are ELI, a patient senior software engineer.",
+                                             prompt=f"{ask}\n\n```\n{code[:12000]}\n```", max_tokens=1200,
+                                             temperature=0.3)
+
+        def back(result: Any) -> None:
+            button.setEnabled(True)
+            self.eli_notes.setPlainText(str(result) if not isinstance(result, Exception)
+                                        else f"ELI could not read it: {result}")
+
+        self.shell.run_in_background(work, back)
+
+    def improve(self) -> None:
+        code = self.code.toPlainText().strip()
+        if not code:
+            self.shell.toast("Open some code first.", "warn")
+            return
+        self.task.setPlainText("Improve this code: keep what it does, make it clearer and more robust, handle the "
+                               f"edge cases, and test it.\n\n{code[:8000]}")
+        self.task.setFocus()
+        self.shell.toast("The task is ready: press Create and the agent improves it against its tests.", "good")
 
     def _copy(self) -> None:
         QGuiApplication.clipboard().setText(self.code.toPlainText())

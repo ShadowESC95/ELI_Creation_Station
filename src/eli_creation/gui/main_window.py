@@ -7,12 +7,14 @@ Ctrl+. shows or hides ELI; Ctrl+B narrows the rail; F11 fills the screen.
 
 from __future__ import annotations
 
+import threading
 from functools import partial
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import (
     QEasingCurve,
+    QObject,
     QPointF,
     QPropertyAnimation,
     QRectF,
@@ -20,6 +22,8 @@ from PySide6.QtCore import (
     Qt,
     QTimer,
     QUrl,
+    Signal,
+    Slot,
 )
 from PySide6.QtGui import (
     QAction,
@@ -39,6 +43,7 @@ from PySide6.QtWidgets import (
     QGraphicsOpacityEffect,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QMainWindow,
     QMessageBox,
     QSizePolicy,
@@ -62,7 +67,7 @@ if TYPE_CHECKING:
     from eli_creation.services import Studio
 
 # The studios in the rail, in order; Library and Settings sit at its foot.
-ORDER = ("home", "socials", "images", "videos", "games", "editing", "coding", "library", "settings")
+ORDER = ("home", "socials", "images", "videos", "audio", "games", "editing", "coding", "library", "settings")
 FOOT = ("library", "settings")
 
 
@@ -146,7 +151,7 @@ class Rail(QFrame):
     def __init__(self, choose: Any, wide: bool) -> None:
         super().__init__()
         self.setObjectName("rail")
-        self.setStyleSheet(f"QFrame#rail {{ background: {design.SURFACE}; border-right: 1px solid {design.LINE}; }}")
+        self.setStyleSheet(f"QFrame#rail {{ background: rgba(8,12,20,0.78); border-right: 1px solid {design.HAIRLINE}; }}")
         self.buttons: dict[str, NavButton] = {}
         self.mark = QLabel()
         self.mark.setPixmap(icons.brand_mark(34))
@@ -243,8 +248,8 @@ class SearchPill(QAbstractButton):
         super().__init__()
         self.setCursor(Qt.CursorShape.PointingHandCursor)
         self.setToolTip("Find a studio, an action or something you made (Ctrl+K)")
-        self.setMinimumWidth(260)
-        self.setMaximumWidth(480)
+        self.setMinimumWidth(200)
+        self.setMaximumWidth(380)
         self.setFixedHeight(36)
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
 
@@ -278,7 +283,8 @@ class ProjectBox(QComboBox):
         super().__init__()
         self.setEditable(True)
         self.setInsertPolicy(QComboBox.InsertPolicy.NoInsert)
-        self.setMinimumWidth(250)
+        self.setMinimumWidth(200)
+        self.setMaximumWidth(300)
         line = self.lineEdit()
         if line is not None:
             line.setPlaceholderText("Project: a client, a channel, a game…")
@@ -291,6 +297,20 @@ class ProjectBox(QComboBox):
         return self.currentText().strip()
 
 
+class _Later(QObject):
+    """Brings work done on another thread back to the window's."""
+
+    back = Signal(object, object)
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.back.connect(self._run)
+
+    @Slot(object, object)
+    def _run(self, then: Any, value: Any) -> None:
+        then(value)
+
+
 class MainWindow(QMainWindow):
     def __init__(self, studio: Studio, *, licence_line: str = "") -> None:
         super().__init__()
@@ -299,6 +319,8 @@ class MainWindow(QMainWindow):
         self.resize(1480, 920)
         self.setMinimumSize(1100, 700)
         self.bridge = Bridge()
+        self._later = _Later()
+        self.current: str = ""
         studio.queue.on_change(self.bridge.job_changed.emit)
         studio.manager.on_change(self.bridge.models_changed.emit)
         design.follow_zoom()
@@ -313,13 +335,26 @@ class MainWindow(QMainWindow):
         self.activity_panel = ActivityPanel(studio, self._job_title)
         self.eli_toggle = ui.icon_button("sparkles", "Show or hide ELI (Ctrl+.)", self._toggle_eli, checkable=True,
                                          size=18)
-        self.tier = ui.Badge(f"Tier {studio.machine.tier} · {TIER_LABELS[studio.machine.tier]}", design.BRAND_B)
-        self.tier.setToolTip("What this machine can run: Settings shows each feature's needs")
+        self.ask_eli = QLineEdit()
+        self.ask_eli.setObjectName("askEli")
+        self.ask_eli.setPlaceholderText("Ask ELI, or tell it what to make…")
+        self.ask_eli.addAction(icons.icon("sparkles", design.BRAND_A, 16), QLineEdit.ActionPosition.LeadingPosition)
+        self.ask_eli.setMinimumWidth(180)
+        self.ask_eli.setStyleSheet(f"QLineEdit#askEli {{ background: {design.alpha(design.BRAND_A, 0.07)}; border: 1px "
+                                   f"solid {design.alpha(design.BRAND_A, 0.35)}; border-radius: 18px; padding: 7px 12px; }}"
+                                   f" QLineEdit#askEli:focus {{ border-color: {design.BRAND_A}; }}")
+        self.ask_eli.returnPressed.connect(self._ask_eli)
+        self.models_button = ui.icon_button("cpu", "ELI's models: what is loaded, and letting go", self.show_models,
+                                            size=18)
+        self._dock: Any = None
+        self.tier = ui.Badge(f"Tier {studio.machine.tier}", design.BRAND_B)
+        self.tier.setToolTip(f"{TIER_LABELS[studio.machine.tier]}: what this machine can run. Settings shows each "
+                             "feature's needs")
         self.tier.setCursor(Qt.CursorShape.PointingHandCursor)
         self.tier.mousePressEvent = lambda _e: self.go("settings")  # type: ignore[method-assign]
         top = QFrame()
         top.setObjectName("topbar")
-        top.setStyleSheet(f"QFrame#topbar {{ background: {design.INK}; border-bottom: 1px solid {design.LINE}; }}")
+        top.setStyleSheet(f"QFrame#topbar {{ background: rgba(5,7,13,0.6); border-bottom: 1px solid {design.HAIRLINE}; }}")
         bar = QHBoxLayout(top)
         bar.setContentsMargins(20, 10, 16, 10)
         bar.setSpacing(10)
@@ -328,9 +363,11 @@ class MainWindow(QMainWindow):
         bar.addWidget(folder)
         bar.addWidget(self.project)
         bar.addStretch(1)
-        bar.addWidget(self.search, 3)
+        bar.addWidget(self.search, 2)
+        bar.addWidget(self.ask_eli, 3)
         bar.addStretch(1)
         bar.addWidget(self.tier)
+        bar.addWidget(self.models_button)
         bar.addWidget(self.activity)
         bar.addWidget(self.eli_toggle)
 
@@ -346,6 +383,8 @@ class MainWindow(QMainWindow):
 
         # ── ELI ──
         self.eli = EliPanel(studio, self.project)
+        self.eli.shell = self
+        self.eli.where = self._where
         self.eli.setFixedWidth(360)
         eli_open = bool(self.recall("eli_open", True))
         self.eli.setVisible(eli_open)
@@ -356,7 +395,7 @@ class MainWindow(QMainWindow):
         middle.setSpacing(0)
         middle.addWidget(top)
         middle.addWidget(self.stack, 1)
-        body = QWidget()
+        body = ui.Backdrop()
         body.setObjectName("shellBody")
         row = QHBoxLayout(body)
         row.setContentsMargins(0, 0, 0, 0)
@@ -379,6 +418,10 @@ class MainWindow(QMainWindow):
         line = QHBoxLayout(holder)
         line.setContentsMargins(8, 0, 8, 0)
         line.setSpacing(4)
+        for chip in (self.main_chip, self.models_chip):
+            chip.setCursor(Qt.CursorShape.PointingHandCursor)
+            chip.setToolTip("ELI's models: what is loaded, and letting go")
+            chip.mousePressEvent = partial(self._models_from, chip)  # type: ignore[method-assign]
         line.addWidget(self.main_dot)
         line.addWidget(self.main_chip)
         line.addWidget(ui.text("·", "small", tone="faint"))
@@ -397,7 +440,6 @@ class MainWindow(QMainWindow):
         self._menus()
         self._shortcuts()
         start = str(self.recall("page", "") or "home")
-        self.current = ""
         self.go(start if start in self.pages else "home")
         self.refresh_status()
 
@@ -418,6 +460,20 @@ class MainWindow(QMainWindow):
     def toast(self, message: str, kind: str = "info", *, action: tuple[str, Any] | None = None) -> None:
         self.toasts.show_toast(message, kind, action=action)
 
+    def run_in_background(self, work: Any, done: Any, failed: Any | None = None) -> None:
+        """Run ``work`` off the window's thread (a model's answer, a long job of the window's own),
+        then ``done(result)`` back on it, or ``failed(exception)``."""
+
+        def run() -> None:
+            try:
+                result = work()
+            except Exception as exc:
+                self._later.back.emit(failed or done, exc)
+                return
+            self._later.back.emit(done, result)
+
+        threading.Thread(target=run, name="eli-creation-window-work", daemon=True).start()
+
     def go(self, key: str, **wanted: Any) -> None:
         if key not in self.pages:
             return
@@ -427,7 +483,7 @@ class MainWindow(QMainWindow):
         self.rail.choose(key)
         self.stack.setCurrentWidget(page)
         self.remember("page", key)
-        if key in ("socials", "images", "videos", "games", "editing", "coding"):
+        if key in ("socials", "images", "videos", "audio", "games", "editing", "coding"):
             self.studio.settings.last_tab = key
         page.shown(**wanted)
         if changed:
@@ -461,6 +517,28 @@ class MainWindow(QMainWindow):
         anim.setEasingCurve(QEasingCurve.Type.OutCubic)
         anim.finished.connect(lambda: page.setGraphicsEffect(None))  # type: ignore[arg-type]
         anim.start(QPropertyAnimation.DeletionPolicy.DeleteWhenStopped)
+
+    def _ask_eli(self) -> None:
+        question = self.ask_eli.text().strip()
+        if not question:
+            return
+        self.ask_eli.clear()
+        if not self.eli.isVisible():
+            self._toggle_eli()
+        self.eli.ask_now(question)
+
+    def _where(self) -> str:
+        return design.STUDIOS.get(self.current, design.STUDIOS["home"]).name
+
+    def _models_from(self, chip: QWidget, _event: object) -> None:
+        self.show_models(chip, above=True)
+
+    def show_models(self, near: QWidget | None = None, *, above: bool = False) -> None:
+        from eli_creation.gui.models_dock import ModelsDock
+
+        if self._dock is None:
+            self._dock = ModelsDock(self)
+        self._dock.show_at(near or self.models_button, above=above)
 
     def _toggle_eli(self) -> None:
         shown = not self.eli.isVisible()
@@ -508,14 +586,26 @@ class MainWindow(QMainWindow):
                     accent=design.accent("games")),
             Command("Write code", lambda: self.go("coding", focus=True), "Create", "code",
                     keywords="program script agent", accent=design.accent("coding")),
-            Command("Make an animatic", lambda: self.go("videos"), "Create", "film", keywords="video storyboard",
+            Command("Make a film", lambda: self.go("videos"), "Create", "film", keywords="video storyboard movie",
                     accent=design.accent("videos")),
+            Command("1-click ad", lambda: self.go("videos", ad=True), "Create", "bolt",
+                    keywords="advert commercial promo video", accent=design.accent("videos")),
+            Command("Start a film from a template", lambda: self.go("videos", template=True), "Create", "layers",
+                    keywords="trailer promo explainer intro event", accent=design.accent("videos")),
+            Command("Record a voice-over", lambda: self.go("audio", mode="voice"), "Create", "mic",
+                    keywords="narration speech voice tts", accent=design.accent("audio")),
+            Command("Compose music", lambda: self.go("audio", mode="music"), "Create", "music",
+                    keywords="soundtrack song score bed", accent=design.accent("audio")),
+            Command("Make a sound effect", lambda: self.go("audio", mode="sfx"), "Create", "bolt",
+                    keywords="whoosh riser impact sfx", accent=design.accent("audio")),
             Command("Edit a picture", lambda: self.go("editing"), "Create", "sliders", keywords="crop resize adjust",
                     accent=design.accent("editing")),
             Command("Show or hide ELI", self._toggle_eli, "View", "sparkles", ui.shortcut_hint("Ctrl+.")),
             Command("Narrow or widen the rail", self._flip_rail, "View", "sidebar", ui.shortcut_hint("Ctrl+B")),
             Command("Open the outputs folder", self._open_outputs, "Files", "folder"),
             Command("Unload idle models now", self._unload, "Models", "cpu", keywords="memory gpu free"),
+            Command("ELI's models", self.show_models, "Models", "cpu", keywords="main specialist loaded load"),
+            Command("Ask ELI", lambda: self.ask_eli.setFocus(), "ELI", "sparkles", keywords="agent help chat"),
             Command("Licence", self._licence, "Help", "shield", keywords="key trial buy activate"),
         ]
         for asset in self.studio.library.recent(limit=40):

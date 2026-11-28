@@ -4,6 +4,16 @@ from __future__ import annotations
 
 from eli_creation.engines.base import Engine
 from eli_creation.engines.games import BrowserGame
+from eli_creation.engines.production import (
+    AdMaker,
+    Film,
+    GameTemplate,
+    Music,
+    Narration,
+    PlatformCards,
+    SoundEffect,
+    Transcribe,
+)
 from eli_creation.engines.visual import (
     Animatic,
     DiffusionImages,
@@ -13,26 +23,28 @@ from eli_creation.engines.visual import (
 )
 from eli_creation.engines.writing import Coding, GameDesign, SocialPosts
 
-TABS = ("socials", "images", "videos", "games", "editing", "coding")
+TABS = ("socials", "images", "videos", "audio", "games", "editing", "coding")
 
 ENGINES: tuple[Engine, ...] = (
     SocialPosts(),
     Planned("socials.calendar", "socials", "Content calendar",
             "A month of posts across platforms from one brief, scheduled in a calendar you approve."),
-    Planned("socials.thumbnail", "socials", "Thumbnails and cards",
-            "A post's image in each platform's shape, from the Images tab's engines.", task="image"),
+    PlatformCards(),
     DiffusionImages(),
     ProceduralImages(),
+    Film(),
+    AdMaker(),
     Animatic(),
     Planned("videos.text_to_video", "videos", "Text or image to video",
             "Short clips from words or a still, with a local video model.", task="video"),
-    Planned("videos.narration", "videos", "Narration",
-            "A script read in a chosen voice (ELI v3's voices when opened from ELI v3).", task="speech"),
-    Planned("videos.captions", "videos", "Captions and subtitles",
-            "Words heard in a video, timed, in each platform's caption format.", task="transcription"),
-    Planned("videos.music", "videos", "Music and sound",
-            "A soundtrack or sound effects for a cut.", task="music"),
+    Narration(),
+    Music(),
+    SoundEffect(),
+    Transcribe(),
+    Planned("audio.music_model", "audio", "Music with a model",
+            "Songs and scores from a description, with a local music model.", task="music"),
     GameDesign(),
+    GameTemplate(),
     BrowserGame(),
     Planned("games.vr", "games", "Play it in ELI VR",
             "Set the game in ELI's rooms: the design's kinds are the ones ELI VR plays."),

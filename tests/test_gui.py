@@ -1,6 +1,7 @@
 """The window as a person uses it: studios in the rail, the palette, making images and seeing them
-arrive in the gallery, editing with a live preview, an animatic from a storyboard, posts read as
-each platform shows them, the library's filters, the viewer, and every icon drawn."""
+arrive in the gallery, editing with a live preview and undo, a film made from pictures with music,
+the Audio studio, the content calendar, ELI's action cards, the models dock, ready-made games, posts
+read as each platform shows them, the library's filters, the viewer, and every icon drawn."""
 
 from __future__ import annotations
 
@@ -143,18 +144,124 @@ def test_an_edit_previews_as_it_is_made_and_saves_beside_the_original(window, ap
         "an edit keeps what its source was"
 
 
-def test_an_animatic_is_made_from_the_storyboard(window, app):
+def test_pictures_become_a_film_with_music_played_and_written(window, app):
+    from eli_creation.production import render
+
     made = make_images(window, app, count=2)
     window.go("videos", add=made)
     page = window.pages["videos"]
-    assert page.board.paths() == made
-    assert len(page.player.images) == 2 and page.player.length() == 2 * page.player.hold_ms
-    page.submit()
-    settle(app, lambda: page.jobs and all(j.finished for j in page.jobs.values()))
-    job = next(iter(page.jobs.values()))
-    assert job.state == "done", job.error
-    frames = imaging.frames(job.assets[0].path, 200)
-    assert len(frames) > 2, "an animatic moves"
+    film = page.project
+    assert film is not None and [s.image for s in film.scenes] == made
+    assert page.strip.count() == 2 and page.preview.compositor is not None
+    page.seek(1.0)
+    assert page.preview._frame is not None and not page.preview._frame.isNull(), "the preview draws the film"
+    page._submit("audio.music", {"mood": "ambient", "seconds": 6}, "music", {"film": film.id, "start": 0.0})
+    settle(app, lambda: not page.jobs)
+    assert [c.kind for c in film.clips] == ["music"] and film.clips[0].duration > 5
+    settle(app, lambda: bool(page.store.load(film.id).clips), seconds=5)  # saved half a second after a change
+    page.export()
+    settle(app, lambda: not page.jobs, seconds=300)
+    videos = window.studio.library.recent(kind="video", limit=5)
+    assert videos, "the film is written and filed"
+    ok, _why = render.multimedia()
+    assert videos[0].path.suffix == (".mp4" if ok else ".webp"), "an MP4, or an animatic where Qt cannot encode"
+
+
+def test_a_scene_takes_a_look_and_the_timeline_follows_its_length(window, app):
+    made = make_images(window, app, count=1)
+    window.go("videos", add=made)
+    page = window.pages["videos"]
+    page.seconds.set_value(6.0)
+    page.look.setCurrentIndex(page.look.findData("noir"))
+    app.processEvents()
+    scene = page.project.scenes[0]
+    assert scene.seconds == 6.0 and scene.grade.look == "noir"
+    assert page.project.length() == 6.0 and "06.00" in page.time_label.text()
+
+
+def test_the_audio_studio_composes_plays_and_sends_to_a_film(window, app):
+    window.go("audio")
+    page = window.pages["audio"]
+    page.mode.set_value("music")
+    page.length.set_value(5)
+    page.compose()
+    settle(app, lambda: not page.jobs)
+    assert page.rows and page.rows[0].asset.engine == "audio.music"
+    assert page.rows[0].wave.peaks, "its waveform is drawn"
+    page.rows[0].to_film()
+    app.processEvents()
+    film = window.pages["videos"].project
+    assert window.current == "videos" and film is not None and film.clips[-1].kind == "music"
+
+
+def test_a_planned_post_is_in_the_calendar_and_marked_posted(window, app):
+    import datetime as dt
+
+    from eli_creation.gui.socials_tools import PostLine, calendar_of
+    from eli_creation.production.social import Planned
+
+    window.go("socials", room="calendar")
+    page = window.pages["socials"]
+    assert page.rooms.currentWidget() is page.calendar
+    today = dt.date.today()
+    item = calendar_of(window).put(Planned(day=today.isoformat(), platform="instagram", text="Spring roast, at last"))
+    page.calendar.refresh()
+    assert page.calendar.view.items[today.isoformat()][0].id == item.id
+    line = next(w for w in page.calendar.findChildren(PostLine) if w.item.id == item.id)
+    line._posted()
+    assert calendar_of(window).all()[0].status == "posted"
+
+
+def test_an_edit_is_undone_and_redone(window, app):
+    made = make_images(window, app, count=1)
+    window.go("editing", path=made[0])
+    page = window.pages["editing"]
+    page.look.set_value("vintage")
+    settle(app, lambda: page.at == 1, seconds=5)
+    page.words.setText("Sale")
+    settle(app, lambda: page.at == 2, seconds=5)
+    assert [o["op"] for o in page.ops()] == ["look", "text"]
+    page.undo()
+    assert [o["op"] for o in page.ops()] == ["look"] and page.words.text() == ""
+    page.undo()
+    assert page.ops() == []
+    page.redo()
+    page.redo()
+    assert [o["op"] for o in page.ops()] == ["look", "text"]
+
+
+def test_eli_offers_where_to_make_it_without_the_main_model(window, app):
+    from eli_creation.gui.eli_agent import ActionCard, run, suggest
+
+    assert [a["do"] for a in suggest("write an instagram post and a picture for our launch")] == ["image", "posts"]
+    window.ask_eli.setText("make a soundtrack for my trailer")
+    window._ask_eli()
+    app.processEvents()
+    offered = [c for c in window.eli.findChildren(ActionCard) if c.isVisible()]
+    assert offered, "ELI still knows where it is done"
+    run(window, "music", {"mood": "epic"})
+    assert window.current == "audio" and window.pages["audio"].mood.value() == "epic"
+
+
+def test_the_models_dock_shows_the_main_model_and_every_specialist(window, app):
+    window.show_models()
+    app.processEvents()
+    dock = window._dock
+    assert dock.isVisible()
+    words = " ".join(label.text() for label in dock.findChildren(type(window.main_chip)))
+    assert window.studio.main.name in words and "loads when a job needs it" in words
+    dock.hide()
+
+
+def test_a_ready_made_game_is_set_up_and_made_playable(window, app):
+    window.go("games")
+    page = window.pages["games"]
+    assert page.engines.current != "games.template", "the strip keeps to the pitch and play engines"
+    page.from_template("star_catcher", play=True)
+    settle(app, lambda: not [j for j in page.jobs.values() if not j.finished] and
+           any(a.path.suffix == ".html" for a in window.studio.library.recent(kind="game", limit=5)), seconds=60)
+    kinds = sorted(a.path.suffix for a in window.studio.library.recent(kind="game", limit=5))
+    assert kinds == [".html", ".json"]
 
 
 def test_posts_are_read_as_each_platform_shows_them():

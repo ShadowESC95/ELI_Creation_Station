@@ -197,6 +197,31 @@ class ImageEdits(Engine):
             draw.text((x, y), text, fill=(255, 255, 255), font=font, stroke_width=max(1, size // 12),
                       stroke_fill=(0, 0, 0))
             return image
+        if kind == "look":
+            from eli_creation.production import grade
+
+            return grade.look(image, str(op.get("name", "none")), float(op.get("strength", 1.0)))
+        if kind == "grade":
+            from eli_creation.production import grade
+
+            return grade.adjust(image, warmth=float(op.get("warmth", 0)), light=float(op.get("light", 0)),
+                                contrast=float(op.get("contrast", 0)), colour=float(op.get("colour", 0)),
+                                mood=float(op.get("mood", 0)))
+        if kind == "vignette":
+            from eli_creation.production import grade
+
+            return grade.vignette(image, float(op.get("amount", 0.5)))
+        if kind == "grain":
+            from eli_creation.production import grade
+
+            return grade.grain(image, float(op.get("amount", 0.4)))
+        if kind == "text":
+            return _text(image, op)
+        if kind == "watermark":
+            return _watermark(image, op)
+        if kind == "border":
+            width = max(1, int(min(image.size) * float(op.get("share", 0.03))))
+            return ImageOps.expand(image, border=width, fill=str(op.get("colour", "#ffffff")))
         raise ValueError(f"unknown edit {kind!r}")
 
 
@@ -266,3 +291,73 @@ class Planned(Engine):
                 where = "this machine can run it" if ok else f"on this machine: {why}"
                 return Availability(False, f"planned for a later release ({spec.title}; {where})", spec.id)
         return Availability(False, "planned for a later release")
+
+
+POSITIONS = ("top", "middle", "bottom")
+
+
+def _text(image: Image.Image, op: dict[str, Any]) -> Image.Image:
+    """Words on a picture: where (top, middle, bottom), how big (a share of its height), in what
+    colour, with a soft box behind them if asked."""
+    from PIL import ImageFont
+
+    text = str(op.get("text", "")).strip()
+    if not text:
+        return image
+    image = image.convert("RGBA")
+    size = max(12, int(image.height * float(op.get("size", 0.07))))
+    try:
+        font = ImageFont.load_default(size=size)
+    except TypeError:
+        font = ImageFont.load_default()
+    layer = Image.new("RGBA", image.size, (0, 0, 0, 0))
+    draw = ImageDraw.Draw(layer)
+    width = image.width * 0.86
+    words, lines, line = text.split(), [], ""
+    for word in words:
+        trial = f"{line} {word}".strip()
+        if line and draw.textlength(trial, font=font) > width:
+            lines.append(line)
+            line = word
+        else:
+            line = trial
+    if line:
+        lines.append(line)
+    spacing = int(size * 0.25)
+    heights = [draw.textbbox((0, 0), ln, font=font)[3] for ln in lines]
+    block = sum(heights) + spacing * (len(lines) - 1)
+    where = str(op.get("position", "bottom"))
+    top = {"top": image.height * 0.07, "middle": (image.height - block) / 2}.get(where, image.height * 0.93 - block)
+    colour = str(op.get("colour", "#ffffff"))
+    if op.get("box", True):
+        widest = max(draw.textlength(ln, font=font) for ln in lines)
+        pad = size * 0.45
+        draw.rounded_rectangle(((image.width - widest) / 2 - pad, top - pad, (image.width + widest) / 2 + pad,
+                                top + block + pad), radius=int(size * 0.3), fill=(0, 0, 0, 150))
+    y = top
+    for ln, h in zip(lines, heights, strict=True):
+        x = (image.width - draw.textlength(ln, font=font)) / 2
+        draw.text((x, y), ln, font=font, fill=colour, stroke_width=0 if op.get("box", True) else max(1, size // 14),
+                  stroke_fill=(0, 0, 0))
+        y += h + spacing
+    return Image.alpha_composite(image, layer)
+
+
+def _watermark(image: Image.Image, op: dict[str, Any]) -> Image.Image:
+    """A logo in a corner, at a share of the picture's width, at an opacity."""
+    logo_path = Path(str(op.get("path", "")))
+    if not logo_path.is_file():
+        return image
+    image = image.convert("RGBA")
+    with Image.open(logo_path) as raw:
+        logo = raw.convert("RGBA")
+    scale = image.width * float(op.get("share", 0.16)) / max(1, logo.width)
+    logo = logo.resize((max(1, int(logo.width * scale)), max(1, int(logo.height * scale))), Image.Resampling.LANCZOS)
+    alpha = logo.getchannel("A").point(lambda v: int(v * float(op.get("opacity", 0.85))))
+    logo.putalpha(alpha)
+    margin = int(image.width * 0.03)
+    corner = str(op.get("corner", "bottom_right"))
+    x = margin if "left" in corner else image.width - logo.width - margin
+    y = margin if "top" in corner else image.height - logo.height - margin
+    image.alpha_composite(logo, (x, y))
+    return image

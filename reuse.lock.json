@@ -93,7 +93,7 @@
     "mode": "copy",
     "commit": "2abede02bc",
     "source_sha256": "644ce10e4645ce005c70a5f16ac33a799001c6fb74cbf5322f4f01ec01d348a9",
-    "dest_sha256": "055f2093b4e5be683fca421a977a8a4d71aa6341aa3d6a4f5d0d670c4add9aad"
+    "dest_sha256": "3667f9dfcba976e725aa6fab5867239b710341d899dafc9cf18e54f3208e0b9d"
   },
   "packaging/linux/creation.eli.desktop.appdata.xml": {
     "from": "ELI_Legal",

@@ -13,23 +13,27 @@ from PySide6.QtCore import QPointF, Qt
 from PySide6.QtGui import QColor, QFont, QLinearGradient
 from PySide6.QtWidgets import QApplication, QWidget
 
-# ── colour ───────────────────────────────────────────────────────────────
-INK = "#0a0c11"  # the window's ground
-SURFACE = "#11141b"  # panels
-RAISED = "#161a23"  # cards
-HOVER = "#1c2130"
-PRESSED = "#232a3b"
-LINE = "#222837"  # hairlines
-LINE_STRONG = "#2e3649"
-TEXT = "#eceef5"
-SUBTLE = "#b6bdcc"
-MUTED = "#8a92a6"
-FAINT = "#5b6377"
-BRAND_A = "#8b5cf6"  # violet
-BRAND_B = "#22d3ee"  # cyan
-GOOD = "#34d399"
-WARN = "#fbbf24"
-BAD = "#f87171"
+# ── colour: ELI's own (ELI v3's interface), so every ELI product looks like one family ──
+INK = "#05070d"  # the window's ground
+SURFACE = "#0a1019"  # panels
+RAISED = "#0d1421"  # cards (drawn as glass over the ground where the stylesheet allows)
+HOVER = "#111b2b"
+PRESSED = "#16233a"
+LINE = "#11232f"  # cyan-tinted hairlines
+LINE_STRONG = "#173444"
+TEXT = "#dbeafe"
+SUBTLE = "#a9bfdc"
+MUTED = "#8aa4c8"
+FAINT = "#5b6b86"
+BRAND_A = "#22d3ee"  # ELI's cyan
+BRAND_B = "#f637ec"  # ELI's magenta
+ON_BRAND = "#04121a"  # text on the brand's colours
+GOOD = "#34f5c5"
+WARN = "#ffd166"
+BAD = "#ff5d73"
+GLASS = "rgba(13,20,33,0.62)"
+GLASS_SOFT = "rgba(20,28,44,0.55)"
+HAIRLINE = "rgba(64,224,255,0.15)"
 
 
 @dataclass(frozen=True)
@@ -44,15 +48,16 @@ class Studio:
 STUDIOS: dict[str, Studio] = {
     s.key: s
     for s in (
-        Studio("home", "Home", "Start something new", "#a78bfa", "home"),
-        Studio("socials", "Socials", "Posts for every platform", "#f472b6", "message"),
+        Studio("home", "Home", "Start something new", "#22d3ee", "home"),
+        Studio("socials", "Socials", "Posts, cards and a calendar", "#f637ec", "message"),
         Studio("images", "Images", "Pictures from your words", "#a78bfa", "image"),
-        Studio("videos", "Videos", "Storyboards that move", "#fb923c", "film"),
-        Studio("games", "Games", "Design it, then play it", "#34d399", "gamepad"),
-        Studio("editing", "Editing", "Crop, tune and caption", "#22d3ee", "sliders"),
+        Studio("videos", "Film", "Films and ads with sound", "#fb923c", "film"),
+        Studio("audio", "Audio", "Voices, music and effects", "#facc15", "music"),
+        Studio("games", "Games", "Design it, then play it", "#34f5c5", "gamepad"),
+        Studio("editing", "Editing", "Looks, crops, words, logos", "#38bdf8", "sliders"),
         Studio("coding", "Coding", "Code written and tested", "#60a5fa", "code"),
-        Studio("library", "Library", "Everything you have made", "#fbbf24", "library"),
-        Studio("settings", "Settings", "This machine and its models", "#94a3b8", "settings"),
+        Studio("library", "Library", "Everything you have made", "#ffd166", "library"),
+        Studio("settings", "Settings", "This machine and its models", "#8aa4c8", "settings"),
     )
 }
 
@@ -136,13 +141,13 @@ def stylesheet(zoom: float = 1.0) -> str:
 
     return f"""
 QWidget {{ color: {TEXT}; background: transparent; }}
-QMainWindow, QDialog, QWidget#shellBody, QStackedWidget#pages, QWidget#page {{ background: {INK}; }}
+QMainWindow, QDialog {{ background: {INK}; }}
 QLabel {{ background: transparent; }}
 QScrollArea, QScrollArea > QWidget > QWidget {{ background: transparent; border: none; }}
 QFrame[card="true"] {{
-    background: {RAISED}; border: 1px solid {LINE}; border-radius: {px(16)}px;
+    background: {GLASS}; border: 1px solid {HAIRLINE}; border-radius: {px(16)}px;
 }}
-QFrame[card="soft"] {{ background: {SURFACE}; border: 1px solid {LINE}; border-radius: {px(14)}px; }}
+QFrame[card="soft"] {{ background: {GLASS_SOFT}; border: 1px solid {HAIRLINE}; border-radius: {px(14)}px; }}
 QFrame[card="true"] QLabel, QFrame[card="soft"] QLabel {{ background: transparent; }}
 QFrame[hairline="true"] {{ background: {LINE}; max-height: 1px; min-height: 1px; border: none; }}
 QLabel[tone="muted"] {{ color: {MUTED}; }}
@@ -186,7 +191,7 @@ QPushButton[variant="danger"] {{ background: {alpha(BAD, 0.12)}; border-color: {
 QPushButton[variant="danger"]:hover {{ background: {alpha(BAD, 0.22)}; }}
 QPushButton[kind="primary"] {{
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {BRAND_A}, stop:1 {BRAND_B});
-    border: none; color: white; font-weight: 600;
+    border: none; color: {ON_BRAND}; font-weight: 700;
 }}
 QPushButton[kind="primary"]:hover {{
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 {mix(BRAND_A, '#ffffff', 0.12)},

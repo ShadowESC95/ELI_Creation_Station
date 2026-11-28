@@ -1,7 +1,7 @@
 # ELI Creation Station
 
-A studio for entertainment, work and projects: posts for every platform, images, videos, games and
-code, made on your own machine, with ELI beside you on the project. For paid work and for hobbyists
+A studio for entertainment, work and projects: posts for every platform, images, films and ads with
+sound, voices and music, games and code, made on your own machine, with ELI beside you on the project. For paid work and for hobbyists
 alike, on whatever machine they have.
 
 It is an official ELI bundle (product id `creation`), like ELI Legal and ELI VR: an application of
@@ -13,14 +13,15 @@ its own that ELI v3 can open in place of its window, or that runs on its own wit
 
 | Studio | What it makes today | Coming, shown in the app with what your machine needs |
 |---|---|---|
-| **Home** | A line to say what to make and where, the studios with what this machine can do in each, what was made last | |
-| **Socials** | Posts for X, Threads, Bluesky, Instagram, TikTok, LinkedIn, Facebook and YouTube from one brief, in your voice, within each platform's limit, each draft shown as it reads there with its share of the limit | A content calendar; thumbnails in each platform's shape |
-| **Images** | With a local image model (SSD-1B now; FLUX.1 schnell and others as they are added), or ELI v3's procedural renderer on any machine; styles shown as pictures rendered on this machine; seeds kept or rolled; prompts improved by ELI | stable-diffusion.cpp for AMD, Intel and Apple through Vulkan and Metal |
-| **Videos** | Animatics: a storyboard of pictures in order, played in the window as it will move, then made | Text and image to video, narration, captions, music |
-| **Games** | A game designed from a pitch, shown as a design card, and played in a browser from one HTML file | Played in ELI VR (the kinds are the ones ELI VR plays); 3D assets |
-| **Editing** | Crop to a platform's shape, turn, mirror, light and colour, sharpen, black and white, caption, resize, convert, every change previewed as it is made | AI upscale; background removal |
-| **Coding** | ELI v3's coding agent: it plans, writes, runs and repairs code against tests it writes; the code shown highlighted with whether it passed | |
-| **Library** | Everything made, by kind, project and name, each with its record: the models that made it, their licences, whether a model did | |
+| **Home** | Tell ELI what you want or choose where to make it; start a film in each platform's shape or a 1-click ad; the studios with what this machine can do in each; what was made last | |
+| **Socials** | Posts for X, Threads, Bluesky, Instagram, TikTok, LinkedIn, Facebook and YouTube from one brief, in your voice, within each platform's limit; a content calendar (planned by ELI for the week if you like, exported as .ics); one picture cut into cards for each platform with words, a look and your logo; a brand kit (name, voice, colours, logo, hashtags) the other studios use | |
+| **Images** | With a local image model (SSD-1B now; FLUX.1 schnell and others as they are added), or ELI v3's procedural renderer on any machine; styles shown as pictures rendered on this machine; a prompt builder (shot, light, medium, mood); ideas and better prompts from ELI; variations of any picture | stable-diffusion.cpp for AMD, Intel and Apple through Vulkan and Metal |
+| **Film** | Films and ads as projects, from plan to export: notes, ingredients (characters, places, props), scenes with camera moves, transitions, words on screen and a colour look, a timeline of picture, voice, music, effects and captions, a preview that plays exactly what is written, and one MP4 with its sound, on any machine (Qt Multimedia; H.264 where the machine's encoder allows, MPEG-4 otherwise). Ten templates, and a 1-click ad maker: ELI plans it, every scene is pictured, a voice reads it over music, captions follow | Text and image to video with a local video model |
+| **Audio** | Voice-overs in ELI v3's voices, Piper's or the computer's own (ELI writes the script from a brief); music composed here for a mood, length, tempo and key, with the instruments chosen; sound effects synthesised here; captions from a recording, heard by ELI v3's ears; every sound with its waveform, played here and sent to a film | Songs and scores with a local music model |
+| **Games** | A game designed from a pitch, shown as a design card, changed by hand, and played in a browser from one HTML file; six ready-made games that need no model | Played in ELI VR (the kinds are the ones ELI VR plays); 3D assets |
+| **Editing** | Crop to a platform's shape, turn, mirror; ten colour looks, warmth, mood, vignette and film grain; light and colour; words and a logo placed on it; a border; sharpen, black and white, caption, resize, convert; every change previewed as it is made, and undone or redone | AI upscale; background removal |
+| **Coding** | ELI v3's coding agent: it plans, writes, runs and repairs code against tests it writes; the code shown highlighted with whether it passed; ELI explains or reviews it, and the agent improves it on request | |
+| **Library** | Everything made (pictures, films, sound, posts, games, code, captions), by kind, project and name, each with its record: the models that made it, their licences, whether a model did | |
 | **Settings** | This machine and its tier, the main model, how models load, the models, ELI, provenance, the licence | |
 
 **The window.** The studios down the left (each in its own colour, marked while something of it is
@@ -29,6 +30,13 @@ what is running and what finished under the activity button; ELI on the right. W
 in the studio's gallery where its results will appear. Ctrl+Enter creates, Ctrl+1 to Ctrl+9 open the
 studios, Ctrl+. shows or hides ELI. The look is drawn by the studio itself (its icons too), so it is the
 same on Windows, macOS and Linux.
+
+**ELI everywhere.** Ask ELI from the top bar of any studio, or from its panel, and it answers with what
+it would make: each proposal a card (an image, posts, an ad, a voice-over, music, a game, code) that
+you run with one click; nothing is made until you do. Without a main model it still knows where each
+thing is made and takes you there. The models dock (the chip in the top bar, or the status line) shows
+ELI's main model, which stays loaded, and every specialist the studios load when a job needs one and
+let go of when idle, with the means to let go of any of them at once.
 
 **ELI beside the studios.** With your permission ELI follows the project you are working on (its folder,
 and the screen if you allow it), notices what matters (a platform's limit, a licence warning on an

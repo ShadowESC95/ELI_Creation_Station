@@ -9,7 +9,17 @@ from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import QRectF, Qt, QUrl
 from PySide6.QtGui import QColor, QDesktopServices, QPainter
-from PySide6.QtWidgets import QHBoxLayout, QPlainTextEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QDialog,
+    QDialogButtonBox,
+    QFormLayout,
+    QGridLayout,
+    QHBoxLayout,
+    QLineEdit,
+    QPlainTextEdit,
+    QVBoxLayout,
+    QWidget,
+)
 
 from eli_creation.engines.writing import GameDesign
 from eli_creation.gui import components as ui
@@ -71,8 +81,81 @@ class DesignCard(ui.Card):
         make.setEnabled(True)
         make.setToolTip("" if playable else "A browser game of this kind plays as a catching game")
         actions.addWidget(make)
+        actions.addWidget(ui.button("Change it", lambda: page.change(path, spec), icon="sliders"))
         actions.addWidget(ui.button("Show the design file", lambda: QDesktopServices.openUrl(
             QUrl.fromLocalFile(str(path.parent))), icon="folder", variant="flat"))
+        actions.addStretch(1)
+        self.add(actions)
+
+
+class DesignDialog(QDialog):
+    """A design changed by hand: its name, goal, rules, round, pieces, colours and look."""
+
+    def __init__(self, parent: QWidget, spec: dict[str, Any]) -> None:
+        from eli_creation.gui.socials_tools import Swatch
+
+        super().__init__(parent)
+        self.setWindowTitle("Change the game")
+        self.setMinimumWidth(580)
+        self.title = QLineEdit(str(spec.get("title", "")))
+        self.goal = QPlainTextEdit(str(spec.get("goal", "")))
+        self.goal.setFixedHeight(70)
+        self.rules = QPlainTextEdit("\n".join(str(r) for r in spec.get("rules", [])))
+        self.rules.setPlaceholderText("One rule a line")
+        self.rules.setFixedHeight(100)
+        self.seconds = ui.SliderField("A round", 15, 180, float(spec.get("seconds", 45)), step=5, fmt="{:.0f} s")
+        self.pieces = ui.SliderField("Pieces", 4, 60, float(spec.get("pieces", 12)), step=1, fmt="{:.0f}")
+        colours = [c for c in spec.get("palette", []) if isinstance(c, str) and c.startswith("#")][:3]
+        self.swatches = [Swatch(c) for c in (colours + ["#22d3ee", "#f637ec", "#facc15"])[:3]]
+        row = QHBoxLayout()
+        for swatch in self.swatches:
+            row.addWidget(swatch)
+        row.addStretch(1)
+        self.player = QLineEdit(str(spec.get("player", "")))
+        self.pieces_look = QLineEdit(str(spec.get("pieces_look", "")))
+        form = QFormLayout()
+        form.addRow("Name", self.title)
+        form.addRow("Goal", self.goal)
+        form.addRow("Rules", self.rules)
+        form.addRow("", self.seconds)
+        form.addRow("", self.pieces)
+        form.addRow("Colours", row)
+        form.addRow("You are", self.player)
+        form.addRow("Pieces look", self.pieces_look)
+        buttons = QDialogButtonBox(QDialogButtonBox.StandardButton.Save | QDialogButtonBox.StandardButton.Cancel)
+        buttons.accepted.connect(self.accept)
+        buttons.rejected.connect(self.reject)
+        lay = QVBoxLayout(self)
+        lay.addWidget(ui.text("Saved as a new design beside the old one, with its own provenance.", "small",
+                              tone="muted"))
+        lay.addLayout(form)
+        lay.addWidget(buttons)
+
+    def changes(self) -> dict[str, Any]:
+        return {"title": self.title.text().strip(), "goal": self.goal.toPlainText().strip(),
+                "rules": [r.strip() for r in self.rules.toPlainText().splitlines() if r.strip()],
+                "seconds": int(self.seconds.value()), "pieces": int(self.pieces.value()),
+                "palette": [s.colour for s in self.swatches], "player": self.player.text().strip(),
+                "pieces_look": self.pieces_look.text().strip()}
+
+
+class TemplateCard(ui.Card):
+    """A ready-made game: play it now, or start from it."""
+
+    def __init__(self, key: str, spec: dict[str, Any], page: GamesPage) -> None:
+        super().__init__(padding=16, spacing=8)
+        head = QHBoxLayout()
+        head.addWidget(ui.text(str(spec["title"]), "h3"), 1)
+        head.addWidget(ui.Badge(KIND_WORDS.get(str(spec.get("kind")), "").upper(), design.accent("games")))
+        self.add(head, ui.text(str(spec.get("goal", "")), "small", tone="subtle", wrap=True))
+        facts = QHBoxLayout()
+        facts.addWidget(Swatches(list(spec.get("palette", []))))
+        facts.addStretch(1)
+        facts.addWidget(ui.text(f"{spec.get('seconds', 45)} s", "tiny", tone="muted"))
+        self.add(facts)
+        actions = QHBoxLayout()
+        actions.addWidget(ui.button("Play now", lambda: page.from_template(key, play=True), icon="play", primary=True))
+        actions.addWidget(ui.button("Start from it", lambda: page.from_template(key), icon="sliders", variant="flat"))
         actions.addStretch(1)
         self.add(actions)
 
@@ -80,6 +163,7 @@ class DesignCard(ui.Card):
 class GamesPage(StudioPage):
     key = "games"
     gallery_kind = "game"
+    own_engines = ("games.template",)
     tile_actions = [("play", "Play it in the browser", "play"), ("playable", "Make it playable", "gamepad")]
 
     def __init__(self, shell: MainWindow) -> None:
@@ -117,6 +201,14 @@ class GamesPage(StudioPage):
                                            "the ones ELI VR plays, so a design made here can be set in ELI's rooms."))
         lay.addWidget(self.engines)
         lay.addLayout(columns)
+        from eli_creation.production.game_templates import DESIGNS
+
+        ready = QGridLayout()
+        ready.setSpacing(14)
+        for n, (key, spec) in enumerate(DESIGNS.items()):
+            ready.addWidget(TemplateCard(key, spec, self), n // 3, n % 3)
+        lay.addWidget(ui.text("Ready-made: no model needed", "h3"))
+        lay.addLayout(ready)
         lay.addLayout(self.gallery_bar("Your games"))
         self.gallery.fit_to_content()
         lay.addWidget(self.gallery)
@@ -124,6 +216,27 @@ class GamesPage(StudioPage):
         outer.setContentsMargins(0, 0, 0, 0)
         outer.addWidget(scrolled(body))
         self._design_path = ""
+        self._play_after: set[str] = set()
+
+    def _own(self, request: dict[str, Any], *, play: bool = False) -> None:
+        request.setdefault("project", self.shell.project_name())
+        try:
+            job = self.studio.submit("games.template", request)
+        except Exception as exc:
+            self.shell.toast(str(exc), "warn")
+            return
+        self.jobs[job.id] = job
+        self.gallery.add_pending(job.id, 1, "Setting it up")
+        if play:
+            self._play_after.add(job.id)
+
+    def from_template(self, key: str, *, play: bool = False) -> None:
+        self._own({"template": key}, play=play)
+
+    def change(self, path: Path, spec: dict[str, Any]) -> None:
+        dialog = DesignDialog(self, spec)
+        if dialog.exec():
+            self._own({"base": str(path), **{k: v for k, v in dialog.changes().items() if v}})
 
     def request(self) -> dict[str, Any]:
         if self.engines.current == "games.browser":
@@ -170,6 +283,9 @@ class GamesPage(StudioPage):
             path = Path(asset.path)
             if path.name.endswith(".game.json"):
                 self.show_design(path)
+                if job.id in self._play_after:
+                    self._play_after.discard(job.id)
+                    self.make_playable(str(path))
             elif path.suffix == ".html":
                 self.shell.toast("The game is ready to play", "good",
                                  action=("Play", lambda p=path: QDesktopServices.openUrl(QUrl.fromLocalFile(str(p)))))

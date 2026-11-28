@@ -28,6 +28,7 @@ from eli_creation.gui import components as ui
 from eli_creation.gui import design, imaging
 from eli_creation.gui.gallery import Gallery, Tile, _Zoomable
 from eli_creation.gui.pages.base import StudioPage, scrolled
+from eli_creation.production import grade as grading
 
 if TYPE_CHECKING:
     from eli_creation.gui.main_window import MainWindow
@@ -112,6 +113,9 @@ class EditingPage(StudioPage):
         self._debounce.setSingleShot(True)
         self._debounce.setInterval(90)
         self._debounce.timeout.connect(self._render)
+        self.history: list[dict[str, Any]] = []
+        self.at = -1
+        self._restoring = False
 
         # the canvas
         self.canvas = Canvas()
@@ -123,7 +127,11 @@ class EditingPage(StudioPage):
         self.compare.released.connect(lambda: self._show(original=False))
         self.size_note = ui.text("", "small", tone="muted")
         canvas_bar = QHBoxLayout()
+        self.undo_button = ui.icon_button("rotate_left", "Undo (Ctrl+Z)", self.undo)
+        self.redo_button = ui.icon_button("rotate_right", "Redo (Ctrl+Shift+Z)", self.redo)
         canvas_bar.addWidget(ui.button("Open…", self._open, icon="upload"))
+        canvas_bar.addWidget(self.undo_button)
+        canvas_bar.addWidget(self.redo_button)
         canvas_bar.addWidget(self.compare)
         canvas_bar.addWidget(ui.icon_button("maximize", "Fit to the canvas", self.canvas.fit))
         canvas_bar.addStretch(1)
@@ -171,6 +179,43 @@ class EditingPage(StudioPage):
         self.caption = QLineEdit()
         self.caption.setPlaceholderText("Words along the bottom")
         self.caption.textChanged.connect(self._changed)
+        # the look
+        self.look = ui.ChipGroup([(name, key) for key, (name, _b) in grading.LOOKS.items()], chosen=["none"],
+                                 accent=self.accent)
+        self.look.changed.connect(self._changed)
+        self.look_strength = ui.SliderField("Strength", 0.0, 1.0, 1.0, step=0.05, fmt="{:.0%}")
+        self.warmth = ui.SliderField("Warmth", -1.0, 1.0, 0.0, step=0.05, fmt="{:+.2f}", icon="sun")
+        self.mood = ui.SliderField("Mood", -1.0, 1.0, 0.0, step=0.05, fmt="{:+.2f}")
+        self.vignette = ui.SliderField("Vignette", 0.0, 1.0, 0.0, step=0.05, fmt="{:.2f}")
+        self.grain = ui.SliderField("Film grain", 0.0, 1.0, 0.0, step=0.05, fmt="{:.2f}")
+        for slider in (self.look_strength, self.warmth, self.mood, self.vignette, self.grain):
+            slider.changed.connect(self._changed)
+        # words and a logo
+        self.words = QLineEdit()
+        self.words.setPlaceholderText("A headline, an offer, a date")
+        self.words.textChanged.connect(self._changed)
+        self.words_at = ui.Segmented([("Top", "top"), ("Middle", "middle"), ("Bottom", "bottom")], "bottom",
+                                     accent=self.accent)
+        self.words_at.changed.connect(self._changed)
+        self.words_size = ui.SliderField("Size", 0.03, 0.16, 0.07, step=0.005, fmt="{:.0%}")
+        self.words_size.changed.connect(self._changed)
+        self.words_box = ui.Switch("A box behind them", True)
+        self.words_box.toggled.connect(self._changed)
+        self.logo = ""
+        self.logo_label = ui.text("No logo", "tiny", tone="muted")
+        logo_row = QHBoxLayout()
+        logo_row.addWidget(ui.button("Logo…", self._choose_logo, icon="upload", variant="flat"))
+        logo_row.addWidget(ui.button("Brand kit's", self._brand_logo, icon="star", variant="flat"))
+        logo_row.addWidget(ui.icon_button("x", "No logo", lambda: self._set_logo("")))
+        logo_row.addStretch(1)
+        self.logo_corner = ui.Segmented([("↖", "top_left"), ("↗", "top_right"), ("↙", "bottom_left"),
+                                         ("↘", "bottom_right")], "bottom_right", accent=self.accent)
+        self.logo_corner.changed.connect(self._changed)
+        self.logo_size = ui.SliderField("Logo size", 0.06, 0.4, 0.16, step=0.01, fmt="{:.0%}")
+        self.logo_opacity = ui.SliderField("Logo opacity", 0.2, 1.0, 0.85, step=0.05, fmt="{:.0%}")
+        self.border = ui.SliderField("Border", 0.0, 0.1, 0.0, step=0.005, fmt="{:.1%}")
+        for slider in (self.logo_size, self.logo_opacity, self.border):
+            slider.changed.connect(self._changed)
         self.width_box = QSpinBox()
         self.width_box.setRange(0, 8192)
         self.width_box.setSpecialValueText("Keep its width")
@@ -184,15 +229,21 @@ class EditingPage(StudioPage):
 
         frame = ui.Section("Frame")
         frame.add(self.crop, turn)
-        light = ui.Section("Light and colour")
+        looks = ui.Section("Look")
+        looks.add(self.look, self.look_strength, self.warmth, self.mood, self.vignette, self.grain)
+        light = ui.Section("Light and colour", opened=False)
         light.add(self.brightness, self.contrast, self.saturation)
-        finish = ui.Section("Finish")
+        words = ui.Section("Words and logo", opened=False)
+        words.add(ui.Field("Words", self.words), self.words_at, self.words_size, self.words_box, ui.hairline(),
+                  logo_row, self.logo_label, self.logo_corner, self.logo_size, self.logo_opacity, self.border)
+        finish = ui.Section("Finish", opened=False)
         finish.add(self.auto, self.sharpen, self.grey, ui.Field("Caption", self.caption))
         size = ui.Section("Size and format", opened=False)
         size.add(ui.Field("Width", self.width_box), self.enlarge, ui.Field("Save as", self.format))
         tools = ui.Card(padding=18, spacing=6)
-        tools.add(frame, ui.hairline(), light, ui.hairline(), finish, ui.hairline(), size, None,
-                  ui.button("Start again", self.reset, icon="refresh", variant="flat"), self.reason, self.create_button)
+        tools.add(frame, ui.hairline(), looks, ui.hairline(), light, ui.hairline(), words, ui.hairline(), finish,
+                  ui.hairline(), size, None, ui.button("Start again", self.reset, icon="refresh", variant="flat"),
+                  self.reason, self.create_button)
         self.create_button.setText("Save the edit")
         tools_scroll = scrolled(tools)
         tools_scroll.setFixedWidth(360)
@@ -204,12 +255,16 @@ class EditingPage(StudioPage):
         lay = QVBoxLayout(self)
         lay.setContentsMargins(32, 26, 32, 20)
         lay.setSpacing(16)
-        lay.addLayout(self.header("Editing", "Crop to a platform's shape, turn, tune the light, caption, resize. "
-                                             "An edit of AI output stays marked as AI; an edit of your own photo "
-                                             "never claims to be."))
+        lay.addLayout(self.header("Editing", "Crop to a platform's shape, give it a look, put words and a logo on it, "
+                                             "resize; undo anything. An edit of AI output stays marked as AI; an edit "
+                                             "of your own photo never claims to be."))
         lay.addLayout(columns, 1)
         compare_key = QShortcut(QKeySequence("\\"), self)
         compare_key.activated.connect(lambda: self._show(original=True))
+        for keys, run in (("Ctrl+Z", self.undo), ("Ctrl+Shift+Z", self.redo), ("Ctrl+Y", self.redo)):
+            shortcut = QShortcut(QKeySequence(keys), self)
+            shortcut.setContext(Qt.ShortcutContext.WidgetWithChildrenShortcut)
+            shortcut.activated.connect(run)
         self._show_empty(True)
 
     # ── the picture ──
@@ -228,7 +283,11 @@ class EditingPage(StudioPage):
             return
         self.path = path
         self.original_q = imaging.to_qimage(self.original)
+        self._restoring = True
         self.reset(keep_picture=True)
+        self._restoring = False
+        self.history, self.at = [self.state()], 0
+        self._history_buttons()
         self._show_empty(False)
         self.canvas.show_image(self.original_q)
         self._render()
@@ -248,6 +307,13 @@ class EditingPage(StudioPage):
         for switch in (self.auto, self.sharpen, self.grey):
             switch.setChecked(False)
         self.caption.clear()
+        self.look.set_value("none")
+        for slider, value in ((self.look_strength, 1.0), (self.warmth, 0.0), (self.mood, 0.0), (self.vignette, 0.0),
+                              (self.grain, 0.0), (self.words_size, 0.07), (self.logo_size, 0.16),
+                              (self.logo_opacity, 0.85), (self.border, 0.0)):
+            slider.set_value(value)
+        self.words.clear()
+        self._set_logo("", quiet=True)
         self.crop.set_value("")
         self.width_box.setValue(0)
         self.enlarge.set_value(1.0)
@@ -267,6 +333,14 @@ class EditingPage(StudioPage):
                   "saturation": self.saturation.value()}
         if any(abs(v - 1.0) > 1e-6 for v in values.values()):
             ops.append({"op": "adjust", **values})
+        if self.look.value() not in ("", "none") and self.look_strength.value() > 0:
+            ops.append({"op": "look", "name": self.look.value(), "strength": self.look_strength.value()})
+        if abs(self.warmth.value()) > 1e-6 or abs(self.mood.value()) > 1e-6:
+            ops.append({"op": "grade", "warmth": self.warmth.value(), "mood": self.mood.value()})
+        if self.vignette.value() > 0:
+            ops.append({"op": "vignette", "amount": self.vignette.value()})
+        if self.grain.value() > 0:
+            ops.append({"op": "grain", "amount": self.grain.value()})
         if self.auto.isChecked():
             ops.append({"op": "autocontrast"})
         if self.sharpen.isChecked():
@@ -279,7 +353,97 @@ class EditingPage(StudioPage):
             ops.append({"op": "upscale", "factor": self.enlarge.value()})
         if self.caption.text().strip():
             ops.append({"op": "caption", "text": self.caption.text().strip()})
+        if self.words.text().strip():
+            ops.append({"op": "text", "text": self.words.text().strip(), "position": self.words_at.value(),
+                        "size": self.words_size.value(), "box": self.words_box.isChecked()})
+        if self.logo:
+            ops.append({"op": "watermark", "path": self.logo, "corner": self.logo_corner.value(),
+                        "share": self.logo_size.value(), "opacity": self.logo_opacity.value()})
+        if self.border.value() > 0:
+            ops.append({"op": "border", "share": self.border.value()})
         return ops
+
+    # ── undo and redo ──
+    def state(self) -> dict[str, Any]:
+        return {"ops": self.ops(), "rotation": self.rotation, "flip": self.flip.isChecked(), "crop": self.crop.value(),
+                "sliders": {name: getattr(self, name).value() for name in self.SLIDERS},
+                "switches": {name: getattr(self, name).isChecked() for name in self.SWITCHES},
+                "texts": {name: getattr(self, name).text() for name in ("caption", "words")},
+                "look": self.look.value(), "words_at": self.words_at.value(), "corner": self.logo_corner.value(),
+                "logo": self.logo, "width": self.width_box.value()}
+
+    SLIDERS = ("brightness", "contrast", "saturation", "enlarge", "look_strength", "warmth", "mood", "vignette",
+               "grain", "words_size", "logo_size", "logo_opacity", "border")
+    SWITCHES = ("auto", "sharpen", "grey", "words_box")
+
+    def set_state(self, state: dict[str, Any]) -> None:
+        self._restoring = True
+        try:
+            self.rotation = int(state["rotation"])
+            self.flip.setChecked(bool(state["flip"]))
+            self.crop.set_value(str(state["crop"]))
+            for name, value in state["sliders"].items():
+                getattr(self, name).set_value(value)
+            for name, value in state["switches"].items():
+                getattr(self, name).setChecked(value)
+            for name, value in state["texts"].items():
+                getattr(self, name).setText(value)
+            self.look.set_value(str(state["look"]))
+            self.words_at.set_value(str(state["words_at"]))
+            self.logo_corner.set_value(str(state["corner"]))
+            self._set_logo(str(state["logo"]), quiet=True)
+            self.width_box.setValue(int(state["width"]))
+        finally:
+            self._restoring = False
+        self._changed()
+
+    def _remember(self) -> None:
+        if self._restoring or self.original is None:
+            return
+        now = self.state()
+        if self.at >= 0 and self.history[self.at]["ops"] == now["ops"]:
+            return
+        self.history = self.history[: self.at + 1] + [now]
+        self.history = self.history[-80:]
+        self.at = len(self.history) - 1
+        self._history_buttons()
+
+    def undo(self) -> None:
+        if self.at > 0:
+            self.at -= 1
+            self.set_state(self.history[self.at])
+            self._history_buttons()
+
+    def redo(self) -> None:
+        if self.at < len(self.history) - 1:
+            self.at += 1
+            self.set_state(self.history[self.at])
+            self._history_buttons()
+
+    def _history_buttons(self) -> None:
+        self.undo_button.setEnabled(self.at > 0)
+        self.redo_button.setEnabled(self.at < len(self.history) - 1)
+
+    # ── a logo ──
+    def _choose_logo(self) -> None:
+        path, _ = QFileDialog.getOpenFileName(self, "A logo", "", "Pictures (*.png *.jpg *.jpeg *.webp)")
+        if path:
+            self._set_logo(path)
+
+    def _brand_logo(self) -> None:
+        from eli_creation.gui.socials_tools import load_brand
+
+        logo = load_brand(self.shell).logo
+        if logo and Path(logo).is_file():
+            self._set_logo(logo)
+        else:
+            self.shell.toast("The brand kit has no logo yet: Socials → Brand kit.", "warn")
+
+    def _set_logo(self, path: str, *, quiet: bool = False) -> None:
+        self.logo = path
+        self.logo_label.setText(Path(path).name if path else "No logo")
+        if not quiet:
+            self._changed()
 
     def _turn(self, degrees: int) -> None:
         self.rotation = (self.rotation + degrees) % 360
@@ -299,6 +463,7 @@ class EditingPage(StudioPage):
     def _render(self) -> None:
         if self.original is not None:
             self.previewer.run(self.original, self.ops())
+            self._remember()
 
     def _preview_made(self, ticket: int, image: QImage) -> None:
         self.edited_q = image

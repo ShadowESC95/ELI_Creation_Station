@@ -158,7 +158,8 @@ def button(label: str, on_click: Callable[[], Any] | None = None, *, icon: str =
            tip: str = "", primary: bool = False) -> QPushButton:
     widget = QPushButton(label)
     if icon:
-        widget.setIcon(icons.icon(icon, "#ffffff" if primary else design.SUBTLE, 18, active=design.TEXT))
+        widget.setIcon(icons.icon(icon, design.ON_BRAND if primary else design.SUBTLE, 18,
+                                  active=design.ON_BRAND if primary else design.TEXT))
         widget.setIconSize(QSize(16, 16))
     if primary:
         widget.setProperty("kind", "primary")
@@ -250,7 +251,7 @@ class GlowButton(QPushButton):
             sheen = QRectF(r.left(), r.top(), r.width(), r.height() / 2)
             p.setBrush(QColor(255, 255, 255, 18))
             p.drawRoundedRect(sheen, radius, radius)
-            fg = QColor("#ffffff")
+            fg = QColor(design.ON_BRAND)
         else:
             p.setBrush(QColor(design.HOVER))
             p.setPen(QPen(QColor(design.LINE_STRONG), 1))
@@ -274,7 +275,7 @@ class GlowButton(QPushButton):
                    Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, label)
         if self._hint and not self._busy:
             p.setFont(self.font())
-            p.setPen(QColor(255, 255, 255, 150) if self.isEnabled() else QColor(design.FAINT))
+            p.setPen(QColor(4, 18, 26, 150) if self.isEnabled() else QColor(design.FAINT))
             hx = x + 32 + fm.horizontalAdvance(label) + 14
             p.drawText(QRectF(hx, r.top(), self._hint_width(), r.height()),
                        Qt.AlignmentFlag.AlignVCenter | Qt.AlignmentFlag.AlignLeft, self._hint)
@@ -844,6 +845,36 @@ class Glow(QWidget):
         p.setPen(QPen(QColor(255, 255, 255, 22), 1))
         p.setBrush(Qt.BrushStyle.NoBrush)
         p.drawPath(path)
+        p.end()
+
+
+class Backdrop(QWidget):
+    """ELI's ground: near-black, a faint cyan grid, a cyan glow above and a magenta glow below."""
+
+    GRID = 34
+
+    def paintEvent(self, event: Any) -> None:  # noqa: N802
+        p = QPainter(self)
+        r = QRectF(self.rect())
+        p.fillRect(r, QColor(design.INK))
+        for colour, cx, cy, rx, alpha in ((design.BRAND_A, 0.82, -0.12, 0.75, 22), (design.BRAND_B, -0.12, 1.12, 0.65, 16)):
+            g = QRadialGradient(QPointF(r.width() * cx, r.height() * cy), max(r.width(), r.height()) * rx)
+            c0 = QColor(colour)
+            c0.setAlpha(alpha)
+            c1 = QColor(colour)
+            c1.setAlpha(0)
+            g.setColorAt(0.0, c0)
+            g.setColorAt(1.0, c1)
+            p.fillRect(r, g)
+        p.setPen(QPen(QColor(34, 211, 238, 12), 1))
+        x = 0
+        while x < r.width():
+            p.drawLine(int(x), 0, int(x), int(r.height()))
+            x += self.GRID
+        y = 0
+        while y < r.height():
+            p.drawLine(0, int(y), int(r.width()), int(y))
+            y += self.GRID
         p.end()
 
 

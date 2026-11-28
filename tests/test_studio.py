@@ -1,5 +1,5 @@
 """Work in the studio: made, marked, filed, recorded in a ledger that shows tampering; refused
-outright where the policy says so; the companion's look; the window's seven tabs."""
+outright where the policy says so; the companion's look; the window's studios."""
 
 from __future__ import annotations
 
@@ -79,8 +79,8 @@ def test_the_window_has_every_studio_in_its_rail(studio: Studio):
     app = QApplication.instance() or QApplication([])
     studio.settings.extra["ui"] = {"style_previews": False}
     window = MainWindow(studio)
-    assert list(window.pages) == list(ORDER) == ["home", "socials", "images", "videos", "games", "editing",
-                                                 "coding", "library", "settings"]
+    assert list(window.pages) == list(ORDER) == ["home", "socials", "images", "videos", "audio", "games",
+                                                 "editing", "coding", "library", "settings"]
     assert list(window.rail.buttons) == list(ORDER)
     assert window.current == "home"
     images = window.pages["images"]
@@ -108,3 +108,74 @@ def test_closing_releases_the_log_files_in_its_folder(tmp_path: Path):
     assert not [h for h in logging.getLogger().handlers if h in inside]
     assert all(getattr(h, "stream", None) is None for h in inside)  # closed
     shutil.rmtree(tmp_path / "studio")
+
+
+def test_sound_music_effects_cards_and_ready_made_games_need_no_model(studio: Studio, tmp_path: Path):
+    """What Creation Station makes itself: no model, no samples, each with its record."""
+    music = studio.queue.wait(studio.submit("audio.music", {"mood": "lofi", "seconds": 4}))
+    effect = studio.queue.wait(studio.submit("audio.sfx", {"effect": "riser"}))
+    for job in (music, effect):
+        assert job.state == "done", job.error
+        asset = job.assets[0]
+        assert asset.path.suffix == ".wav" and asset.kind == "audio" and asset.manifest_path.is_file()
+        assert asset.licence_class, "every sound carries its licence class"
+    photo = tmp_path / "photo.png"
+    Image.new("RGB", (900, 600), (200, 90, 30)).save(photo)
+    cards = studio.queue.wait(studio.submit("socials.cards", {"path": str(photo), "platforms": ["instagram", "story", "x"],
+                                                              "text": "Roasted this morning", "look": "golden"}))
+    assert cards.state == "done", cards.error
+    sizes = []
+    for asset in cards.assets:
+        with Image.open(asset.path) as im:
+            sizes.append(round(im.width / im.height, 2))
+    assert sizes == [0.8, 0.56, 1.78], "4:5, 9:16 and 16:9"
+    assert "digital_source_type" not in marking.read_marking(cards.assets[0].path), "a photo's card is not AI"
+    game = studio.queue.wait(studio.submit("games.template", {"template": "bubble_pop", "title": "Pop!"}))
+    assert game.state == "done", game.error
+    import json
+
+    spec = json.loads(game.assets[0].path.read_text(encoding="utf-8"))
+    assert spec["title"] == "Pop!" and spec["kind"] == "targets"
+    changed = studio.queue.wait(studio.submit("games.template", {"base": str(game.assets[0].path), "seconds": 90}))
+    assert json.loads(changed.assets[0].path.read_text(encoding="utf-8"))["seconds"] == 90
+
+
+def test_an_ad_is_made_from_a_few_answers_without_a_main_model(studio: Studio):
+    pytest.importorskip("PySide6")
+    from PySide6.QtWidgets import QApplication
+
+    from eli_creation.production import render
+
+    QApplication.instance() or QApplication([])
+    ok, why = render.multimedia()
+    if not ok:
+        pytest.skip(why)
+    job = studio.queue.wait(studio.submit("videos.admaker", {
+        "template": "square_ad", "voice": "none", "longest": 480, "fps": 12,
+        "answers": {"product": "Northwind Coffee", "tagline": "Roasted this morning", "cta": "Order today"}}),
+        timeout=600)
+    if job.state == "failed" and "encode" in (job.error or "").lower():
+        pytest.skip(job.error)
+    assert job.state == "done", job.error
+    kinds = [a.kind for a in job.assets]
+    assert kinds.count("image") == 3 and kinds[-1] == "video", "a picture for each scene, then the ad"
+    assert job.assets[-1].path.read_bytes()[4:8] == b"ftyp"
+
+
+def test_edits_give_a_look_words_a_logo_and_a_border(studio: Studio, tmp_path: Path):
+    photo = tmp_path / "photo.png"
+    Image.new("RGB", (400, 300), (90, 90, 90)).save(photo)
+    logo = tmp_path / "logo.png"
+    Image.new("RGBA", (100, 100), (255, 0, 0, 255)).save(logo)
+    ops = [{"op": "look", "name": "noir"}, {"op": "vignette", "amount": 0.6}, {"op": "grain", "amount": 0.3},
+           {"op": "text", "text": "Hello there", "position": "top"},
+           {"op": "watermark", "path": str(logo), "corner": "bottom_right", "share": 0.2, "opacity": 1.0},
+           {"op": "border", "share": 0.05, "colour": "#ffffff"}]
+    job = studio.queue.wait(studio.submit("editing.image", {"path": str(photo), "ops": ops}))
+    assert job.state == "done", job.error
+    with Image.open(job.assets[0].path) as im:
+        rgb = im.convert("RGB")
+        assert rgb.size == (430, 330), "a border of 5% of the short side, all round"
+        assert rgb.getpixel((2, 2)) == (255, 255, 255)
+        red = rgb.getpixel((15 + 400 - 12 - 40, 15 + 300 - 12 - 40))
+        assert red[0] > 200 and red[1] < 60, "the logo sits in its corner"

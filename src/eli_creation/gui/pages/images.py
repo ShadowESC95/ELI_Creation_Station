@@ -43,6 +43,16 @@ STYLE_SUBJECTS = {
     "balanced": "a sunny meadow with a lake and distant mountains",
 }
 PREVIEW_VERSION = 2
+BUILDER = (
+    ("Shot", ("close-up", "portrait", "wide shot", "aerial view", "macro", "overhead flat lay", "low angle")),
+    ("Light", ("golden hour", "soft studio light", "neon glow", "moonlight", "dramatic rim light", "overcast",
+               "candlelight")),
+    ("Medium", ("photograph", "3D render", "watercolour", "oil painting", "pencil sketch", "isometric illustration",
+                "paper cut-out")),
+    ("Mood", ("calm", "energetic", "mysterious", "joyful", "epic", "cosy", "futuristic")),
+)
+IDEAS_SYSTEM = ("You are ELI, an art director. Suggest varied, concrete image prompts: subject, setting, light, "
+                "composition, mood. Answer with JSON only.")
 ENHANCE_SYSTEM = ("You improve prompts for an image generator. Keep the person's idea; add subject detail, "
                   "setting, light, composition and mood in one vivid sentence of at most 60 words. "
                   "Answer with the prompt only.")
@@ -160,7 +170,8 @@ class Enhancer(QObject):
 class ImagesPage(StudioPage):
     key = "images"
     gallery_kind = "image"
-    tile_actions = [("edit", "Edit it", "sliders"), ("to_video", "Add it to an animatic", "film"),
+    tile_actions = [("variations", "Variations of it", "layers"), ("edit", "Edit it", "sliders"),
+                    ("to_video", "Add it to a film", "film"), ("cards", "Cards for socials", "message"),
                     ("reuse", "Use its seed and style", "dice")]
 
     def __init__(self, shell: MainWindow) -> None:
@@ -183,8 +194,13 @@ class ImagesPage(StudioPage):
                                  tip="ELI rewrites the prompt with more detail (needs the main model)")
         self.recent = ui.button("Recent", lambda: self.history.menu(self.recent, self._use_prompt), icon="clock",
                                 variant="flat")
+        self.ideas_button = ui.button("Ideas from ELI", self._ideas, icon="sparkles", variant="flat",
+                                      tip="Five directions to take it (needs the main model)")
+        self.ideas_box = QVBoxLayout()
+        self.ideas_box.setSpacing(6)
         tools = QHBoxLayout()
         tools.addWidget(self.enhance)
+        tools.addWidget(self.ideas_button)
         tools.addWidget(self.recent)
         tools.addStretch(1)
         tools.addWidget(self.count_label)
@@ -236,8 +252,18 @@ class ImagesPage(StudioPage):
         leave_out = ui.Section("Leave out", opened=False)
         leave_out.add(self.negative)
 
+        builder = ui.Section("Build the prompt", opened=False)
+        for title, words in BUILDER:
+            group = ui.ChipGroup([(w, w) for w in words], exclusive=False, accent=self.accent)
+            group.changed.connect(lambda g=group: self._built(g))
+            builder.add(ui.Field(title, group))
+        self._ideas_holder = QWidget()
+        self._ideas_holder.setLayout(self.ideas_box)
+        self._ideas_holder.hide()
+
         composer = ui.Card(padding=20, spacing=12)
-        composer.add(self.prompt, tools, ui.hairline(), settings, ui.Field("Style", style_row), leave_out, self.reason)
+        composer.add(self.prompt, tools, self._ideas_holder, builder, ui.hairline(), settings,
+                     ui.Field("Style", style_row), leave_out, self.reason)
 
         body = QWidget()
         lay = QVBoxLayout(body)
@@ -320,6 +346,72 @@ class ImagesPage(StudioPage):
         else:
             self.shell.toast(f"ELI could not improve it: {why}", "warn")
 
+    def _built(self, group: ui.ChipGroup) -> None:
+        """A builder chip adds its words to the prompt, or takes them out again."""
+        text = self.prompt.toPlainText().strip()
+        parts = [p.strip() for p in text.split(",") if p.strip()]
+        for word in group.chips:
+            if group.chips[word].isChecked() and word not in parts:
+                parts.append(word)
+            elif not group.chips[word].isChecked() and word in parts:
+                parts.remove(word)
+        self.prompt.setPlainText(", ".join(parts))
+
+    def _ideas(self) -> None:
+        if not self.studio.main.available:
+            self.shell.toast(f"ELI needs the main model for ideas: {self.studio.main.why_unavailable}", "warn")
+            return
+        seed_words = self.prompt.toPlainText().strip() or self.shell.project_name() or "something striking"
+        self.ideas_button.setEnabled(False)
+        self.ideas_button.setText("Thinking…")
+
+        def work() -> Any:
+            from eli_creation.engines.writing import parse_json
+
+            return parse_json(self.studio.main.generate(
+                system=IDEAS_SYSTEM, prompt=f"Starting from: {seed_words}\nGive five different image prompts, each "
+                                            'one vivid sentence. Answer as {"ideas": ["...", ...]}',
+                max_tokens=700, temperature=0.9, json_mode=True))
+
+        self.shell.run_in_background(work, self._ideas_back)
+
+    def _ideas_back(self, result: Any) -> None:
+        self.ideas_button.setEnabled(True)
+        self.ideas_button.setText("Ideas from ELI")
+        ideas = [str(i) for i in (result.get("ideas") if isinstance(result, dict) else None) or [] if str(i).strip()]
+        if not ideas:
+            self.shell.toast(f"ELI had no ideas this time: {result}", "warn")
+            return
+        while self.ideas_box.count():
+            item = self.ideas_box.takeAt(0)
+            widget = item.widget() if item is not None else None
+            if widget is not None:
+                widget.deleteLater()
+        self.ideas_box.addWidget(ui.text("ELI's ideas: choose one to use it", "tiny", tone="muted"))
+        for idea in ideas[:5]:
+            line = ui.button(idea[:150], None, icon="sparkles", variant="flat")
+            line.setStyleSheet("text-align: left;")
+            line.clicked.connect(lambda _c=False, i=idea: self._use_prompt(i))
+            self.ideas_box.addWidget(line)
+        self._ideas_holder.show()
+
+    def variations(self, tile: Tile) -> None:
+        req = manifest_of(tile.path).get("request") or {}
+        prompt = str(req.get("prompt") or "").strip()
+        if not prompt:
+            self.shell.toast("That picture has no prompt to vary.", "warn")
+            return
+        self.prompt.setPlainText(prompt)
+        if req.get("style") in self.styles:
+            self._style(str(req["style"]))
+        if req.get("aspect"):
+            self.aspect.set_value(str(req["aspect"]))
+        self.count.set_value(4)
+        self.lock.setChecked(False)
+        self._locked()
+        self.seed.setValue(new_seed())
+        self.submit()
+
     # ── the style previews ──
     def _preview_ready(self, style: str) -> None:
         if style in self.styles:
@@ -339,6 +431,12 @@ class ImagesPage(StudioPage):
             self.prompt.setFocus()
 
     def act(self, name: str, tile: Tile) -> None:
+        if name == "variations":
+            self.variations(tile)
+            return
+        if name == "cards":
+            self.shell.go("socials", card=tile.path)
+            return
         if name == "reuse":
             req = (manifest_of(tile.path).get("request") or {})
             if req.get("seed") is not None:

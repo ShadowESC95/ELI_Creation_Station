@@ -95,7 +95,22 @@ def _system_voices() -> list[Voice]:
     return []
 
 
-def voices(*, include_eli: bool = True) -> list[Voice]:
+_cached: dict[bool, tuple[float, list[Voice]]] = {}
+
+
+def voices(*, include_eli: bool = True, fresh: bool = False) -> list[Voice]:
+    """Every voice this machine has now (remembered for 30 seconds)."""
+    import time
+
+    hit = _cached.get(include_eli)
+    if hit is not None and not fresh and time.monotonic() - hit[0] < 30:
+        return list(hit[1])
+    found = _voices(include_eli)
+    _cached[include_eli] = (time.monotonic(), found)
+    return list(found)
+
+
+def _voices(include_eli: bool) -> list[Voice]:
     out: list[Voice] = []
     if include_eli:
         link = eli_link.find()

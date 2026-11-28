@@ -10,7 +10,15 @@ from typing import TYPE_CHECKING, Any
 
 from PySide6.QtCore import QRectF, Qt
 from PySide6.QtGui import QColor, QFont, QGuiApplication, QPainter, QPen
-from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QPlainTextEdit, QVBoxLayout, QWidget
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPlainTextEdit,
+    QStackedWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from eli_creation.engines.writing import PLATFORMS
 from eli_creation.gui import components as ui
@@ -104,7 +112,7 @@ class Avatar(QWidget):
 
 
 class PostCard(ui.Card):
-    def __init__(self, draft: Draft, brand: str) -> None:
+    def __init__(self, draft: Draft, brand: str, plan: Any = None) -> None:
         super().__init__(padding=16, spacing=10)
         name = PLATFORMS.get(draft.platform, ("Post", 0))[0]
         colour = COLOURS.get(draft.platform, design.BRAND_A)
@@ -117,6 +125,8 @@ class PostCard(ui.Card):
         head.addLayout(who, 1)
         copy = ui.icon_button("copy", "Copy this draft", lambda: self._copy(draft.text), size=16)
         head.addWidget(copy)
+        if plan is not None:
+            head.addWidget(ui.icon_button("calendar", "Put it in the calendar", lambda: plan(draft), size=16))
         self.add(head)
         body = ui.text(draft.text, "body", wrap=True, selectable=True)
         self.add(body)
@@ -141,6 +151,7 @@ class PostCard(ui.Card):
 class SocialsPage(StudioPage):
     key = "socials"
     gallery_kind = ""
+    own_engines = ("socials.cards",)
 
     def __init__(self, shell: MainWindow) -> None:
         super().__init__(shell)
@@ -197,17 +208,36 @@ class SocialsPage(StudioPage):
         columns.setSpacing(22)
         columns.addWidget(composer, 0, Qt.AlignmentFlag.AlignTop)
         columns.addLayout(right, 1)
-        body = QWidget()
-        lay = QVBoxLayout(body)
+        write = QWidget()
+        write_lay = QVBoxLayout(write)
+        write_lay.setContentsMargins(0, 0, 0, 0)
+        write_lay.setSpacing(18)
+        write_lay.addWidget(self.engines)
+        write_lay.addLayout(columns, 1)
+
+        from eli_creation.gui.socials_tools import BrandPanel, CalendarPanel, CardsPanel
+
+        self.calendar = CalendarPanel(shell, self.accent)
+        self.cards = CardsPanel(shell, self.accent)
+        self.brand_kit = BrandPanel(shell, self.accent)
+        self.brand_kit.saved.connect(self._brand_saved)
+        self.rooms = QStackedWidget()
+        self.room_widgets = {"write": scrolled(write), "calendar": self.calendar, "cards": self.cards,
+                             "brand": scrolled(self.brand_kit)}
+        for widget in self.room_widgets.values():
+            self.rooms.addWidget(widget)
+        self.room = ui.Segmented([("Write", "write"), ("Calendar", "calendar"), ("Cards", "cards"),
+                                  ("Brand kit", "brand")], str(shell.recall("socials_room", "write")),
+                                 accent=self.accent)
+        self.room.setFixedWidth(460)
+        self.room.changed.connect(self._room)
+        lay = QVBoxLayout(self)
         lay.setContentsMargins(32, 26, 32, 20)
-        lay.setSpacing(18)
-        lay.addLayout(self.header("Socials", "One brief, a post for every platform: in your voice, within each "
-                                              "platform's limit, ready to copy."))
-        lay.addWidget(self.engines)
-        lay.addLayout(columns, 1)
-        outer = QVBoxLayout(self)
-        outer.setContentsMargins(0, 0, 0, 0)
-        outer.addWidget(scrolled(body))
+        lay.setSpacing(16)
+        lay.addLayout(self.header("Socials", "Posts for every platform in your voice, a calendar to plan them, cards "
+                                              "in each platform's shape, and your brand kit.", right=[self.room]))
+        lay.addWidget(self.rooms, 1)
+        self._room(self.room.value())
         self.shown_paths: set[str] = set()
         self.running: QLabel | None = None
 
@@ -255,12 +285,34 @@ class SocialsPage(StudioPage):
         row = QHBoxLayout()
         row.setSpacing(12)
         for draft in drafts:
-            row.addWidget(PostCard(draft, self.brand.text().strip()), 1, Qt.AlignmentFlag.AlignTop)
+            row.addWidget(PostCard(draft, self.brand.text().strip(), self.plan), 1, Qt.AlignmentFlag.AlignTop)
         group.addLayout(row)
         box = QWidget()
         box.setLayout(group)
         self.results.insertWidget(0 if top else max(0, self.results.count() - 1), box)
         self.empty.hide()
+
+    def _room(self, key: str) -> None:
+        self.rooms.setCurrentWidget(self.room_widgets.get(key, self.room_widgets["write"]))
+        self.shell.remember("socials_room", key)
+        if key == "calendar":
+            self.calendar.refresh()
+        elif key == "cards":
+            self.cards.load()
+        elif key == "brand":
+            self.brand_kit.load()
+
+    def _brand_saved(self) -> None:
+        brand = self.brand_kit.brand()
+        if brand.voice:
+            self.voice.setPlainText(brand.voice)
+        if brand.name:
+            self.brand.setText(brand.name)
+
+    def plan(self, draft: Draft) -> None:
+        self.room.set_value("calendar")
+        self._room("calendar")
+        self.calendar.add(draft.text, draft.platform)
 
     def _use(self, brief: str) -> None:
         self.brief.setPlainText(brief)
@@ -272,7 +324,16 @@ class SocialsPage(StudioPage):
             for asset in self.studio.library.recent(kind="post", limit=6):
                 self._show_file(Path(asset.path))
         self.empty.setVisible(not self.shown_paths)
+        if wanted.get("room"):
+            self.room.set_value(str(wanted["room"]))
+            self._room(str(wanted["room"]))
+        if wanted.get("card"):
+            self.room.set_value("cards")
+            self._room("cards")
+            self.cards.use(str(wanted["card"]))
         if wanted.get("prompt"):
+            self.room.set_value("write")
+            self._room("write")
             self.brief.setPlainText(str(wanted["prompt"]))
         if wanted.get("create"):
             self.submit()
@@ -280,6 +341,7 @@ class SocialsPage(StudioPage):
             self.brief.setFocus()
 
     def on_job(self, job: Job) -> None:
+        self.cards.on_job(job)
         if job.id in self.jobs:
             if job.finished:
                 self.finished(job)

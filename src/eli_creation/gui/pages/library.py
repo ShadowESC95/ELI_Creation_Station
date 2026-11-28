@@ -16,9 +16,9 @@ if TYPE_CHECKING:
     from eli_creation.gui.main_window import MainWindow
     from eli_creation.jobs import Job
 
-KINDS = [("Everything", ""), ("Images", "image"), ("Animatics", "video"), ("Posts", "post"), ("Games", "game"),
-         ("Code", "code")]
-ACTIONS = [("edit", "Edit it", "sliders"), ("to_video", "Add it to an animatic", "film")]
+KINDS = [("Everything", ""), ("Images", "image"), ("Films", "video"), ("Sound", "audio"), ("Posts", "post"),
+         ("Games", "game"), ("Code", "code"), ("Captions and notes", "note")]
+ACTIONS = [("edit", "Edit it", "sliders"), ("to_video", "Add it to a film", "film")]
 
 
 class LibraryPage(Page):

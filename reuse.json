@@ -218,7 +218,14 @@
         ],
         [
           "packaging/linux/check_bundle.py",
-          "packaging/linux/check_bundle.py"
+          "packaging/linux/check_bundle.py",
+          [
+            {
+              "old": "MACHINES_OWN = (\"libstdc++.so.6\", \"libgcc_s.so.1\")\n",
+              "new": "MACHINES_OWN = (\"libstdc++.so.6\", \"libgcc_s.so.1\")\n\n# The PulseAudio client Qt Multimedia speaks to the machine's sound through: it must be the one\n# that matches the machine's own sound server (PulseAudio, or PipeWire's stand-in for it), never\n# a copy from the build machine. The .deb depends on it; every desktop Linux has it.\nMACHINES_OWN += (\"libpulse.so.0\", \"libpulse-simple.so.0\")\n",
+              "why": "Qt Multimedia's sound goes through the machine's own libpulse, never a bundled copy"
+            }
+          ]
         ],
         [
           "scripts/fetch_eli_sdk.py",

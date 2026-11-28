@@ -163,12 +163,14 @@ class EngineStrip(QWidget):
 
     changed = Signal(str)
 
-    def __init__(self, tab: str, accent: str, studio: Any) -> None:
+    def __init__(self, tab: str, accent: str, studio: Any, exclude: tuple[str, ...] = ()) -> None:
         super().__init__()
         self.studio = studio
         self.cards: dict[str, EngineCard] = {}
         flow = FlowLayout(self, 10)
         for engine in registry.for_tab(tab):
+            if engine.id in exclude:
+                continue
             card = EngineCard(engine, accent)
             card.clicked.connect(self.choose)
             self.cards[engine.id] = card
@@ -206,11 +208,12 @@ class StudioPage(Page):
 
     gallery_kind = ""  # the library kind the gallery shows
     tile_actions: list[tuple[str, str, str]] = []
+    own_engines: tuple[str, ...] = ()  # engines the page drives from its own panels, not the strip
 
     def __init__(self, shell: MainWindow) -> None:
         super().__init__(shell)
         self.jobs: dict[str, Job] = {}
-        self.engines = EngineStrip(self.key, self.accent, self.studio)
+        self.engines = EngineStrip(self.key, self.accent, self.studio, self.own_engines)
         self.engines.changed.connect(lambda _id: self.update_create())
         self.gallery = Gallery(size=shell.recall("gallery_size", "medium"), actions=self.tile_actions)
         self.gallery.opened.connect(self.view)

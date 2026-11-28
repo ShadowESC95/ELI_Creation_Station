@@ -8,6 +8,7 @@ at until it is allowed. The level here (off, quiet, helpful, active) is how much
 from __future__ import annotations
 
 import threading
+from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -28,6 +29,7 @@ from eli_creation.gui import components as ui
 from eli_creation.gui import design, icons
 
 if TYPE_CHECKING:
+    from eli_creation.gui.main_window import MainWindow
     from eli_creation.services import Studio
 
 SEVERITY = {"high": design.BAD, "medium": design.WARN, "low": design.BRAND_B}
@@ -74,10 +76,12 @@ class EliPanel(QFrame):
         super().__init__()
         self.studio, self.project = studio, project
         self.folder: Path | None = None
+        self.shell: MainWindow | None = None  # set by the window: what ELI's action cards act on
+        self.where: Callable[[], str] | None = None  # which studio the person is in
         self._said = _Said()
         self._said.said.connect(self._show)
         self.setObjectName("eli")
-        self.setStyleSheet(f"QFrame#eli {{ background: {design.SURFACE}; border-left: 1px solid {design.LINE}; }}")
+        self.setStyleSheet(f"QFrame#eli {{ background: rgba(8,12,20,0.78); border-left: 1px solid {design.HAIRLINE}; }}")
 
         mark = QLabel()
         mark.setPixmap(icons.brand_mark(38))
@@ -134,7 +138,7 @@ class EliPanel(QFrame):
 
         self.ask = QLineEdit()
         self.ask.setProperty("bare", True)
-        self.ask.setPlaceholderText("Ask ELI about this project…")
+        self.ask.setPlaceholderText("Ask ELI, or tell it what to make…")
         self.ask.returnPressed.connect(self._ask)
         send = ui.icon_button("send", "Ask (Enter)", self._ask, colour=design.BRAND_B)
         box = QFrame()
@@ -217,30 +221,49 @@ class EliPanel(QFrame):
 
         threading.Thread(target=work, name="eli-creation-companion", daemon=True).start()
 
+    def ask_now(self, question: str) -> None:
+        """Ask ELI from anywhere in the window (the top bar's field)."""
+        self.ask.setText(question)
+        self._ask()
+
     def _ask(self) -> None:
+        from eli_creation.gui import eli_agent
+
         question = self.ask.text().strip()
         if not question:
             return
         self.ask.clear()
         self._bubble(question, mine=True)
         if not self.studio.main.available:
-            self._bubble(f"I need the main model to answer: {self.studio.main.why_unavailable}. Choose one in "
-                         "Settings and ask again.", mine=False)
+            found = eli_agent.suggest(question)
+            self._bubble(f"I need the main model to answer: {self.studio.main.why_unavailable}."
+                         + (" Meanwhile, this is where it is done:" if found else " Choose one in Settings."),
+                         mine=False)
+            self._actions(found)
             return
         thinking = self._bubble("Thinking…", mine=False)
         project = self.project.text().strip()
+        where = self.where() if self.where is not None else ""
 
         def work() -> None:
             try:
                 ctx = self.studio.companion.context(project, self.folder)
-                answer = self.studio.main.generate(
-                    system="You are ELI, beside a creator on their project. Answer briefly and specifically.",
-                    prompt=f"Project context: {ctx}\n\nThey ask: {question}", max_tokens=600, temperature=0.5)
-                self._said.said.emit(("answer", thinking, answer))
+                self._said.said.emit(("agent", thinking, eli_agent.plan(self.studio, question, str(ctx), where)))
             except Exception as exc:
                 self._said.said.emit(("answer", thinking, f"I could not answer: {exc}"))
 
         threading.Thread(target=work, name="eli-creation-ask", daemon=True).start()
+
+    def _actions(self, actions: list[dict[str, Any]]) -> None:
+        from eli_creation.gui import eli_agent
+
+        if not actions or self.shell is None:
+            return
+        holder = QWidget()
+        holder.setLayout(eli_agent.cards(self.shell, actions))
+        self.feed.insertWidget(self.feed.count() - 1, holder)
+        QTimer.singleShot(30, lambda: self.feed_scroll.verticalScrollBar().setValue(
+            self.feed_scroll.verticalScrollBar().maximum()))
 
     def _bubble(self, words: str, *, mine: bool) -> Bubble:
         self.intro.hide()
@@ -261,6 +284,13 @@ class EliPanel(QFrame):
     def _show(self, raised: object) -> None:
         if isinstance(raised, Exception):
             self.state.setText(f"ELI could not look: {raised}")
+        elif isinstance(raised, tuple) and raised[0] == "agent":
+            reply = raised[2]
+            try:
+                raised[1].findChild(QLabel).setText(reply.get("reply") or "Here is what I would make:")
+            except (AttributeError, RuntimeError):
+                self._bubble(str(reply.get("reply") or ""), mine=False)
+            self._actions(list(reply.get("actions") or []))
         elif isinstance(raised, tuple) and raised[0] == "answer":
             bubble = raised[1]
             try:

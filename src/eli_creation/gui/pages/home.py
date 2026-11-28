@@ -22,14 +22,17 @@ from eli_creation.gui import components as ui
 from eli_creation.gui import design, icons
 from eli_creation.gui.gallery import Gallery, Tile, open_lightbox
 from eli_creation.gui.pages.base import Page, scrolled
+from eli_creation.gui.widgets import FlowLayout
 from eli_creation.tiers import TIER_EXAMPLES, TIER_LABELS
 
 if TYPE_CHECKING:
     from eli_creation.gui.main_window import MainWindow
     from eli_creation.jobs import Job
 
-QUICK = [("Image", "images"), ("Posts", "socials"), ("Game", "games"), ("Code", "coding")]
-STUDIO_KEYS = ("socials", "images", "videos", "games", "editing", "coding")
+QUICK = [("ELI", "eli"), ("Image", "images"), ("Posts", "socials"), ("Ad", "videos"), ("Voice", "audio"),
+         ("Game", "games"), ("Code", "coding")]
+STUDIO_KEYS = ("socials", "images", "videos", "audio", "games", "editing", "coding")
+FORMAT_KEYS = ("square", "story", "youtube", "promo", "trailer")
 
 
 def greeting(now: dt.datetime | None = None) -> str:
@@ -93,6 +96,42 @@ class StudioCard(QFrame):
         self.clicked.emit(self.key)
 
 
+class FormatCard(QFrame):
+    """A shape to start a film in: its frame drawn to scale, its name and where it shows."""
+
+    def __init__(self, key: str, name: str, width: int, height: int, where: Any, run: Any) -> None:
+        super().__init__()
+        self.ratio = width / height if width and height else 0.0
+        self.run = run
+        self.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.setObjectName("formatcard")
+        self.setFixedSize(140, 150)
+        accent = design.accent("videos")
+        self.setStyleSheet(
+            f"QFrame#formatcard {{ background: {design.GLASS}; border: 1px solid {design.HAIRLINE}; border-radius: 16px; }}"
+            f" QFrame#formatcard:hover {{ border-color: {design.alpha(accent, 0.7)}; }}"
+            " QLabel { background: transparent; border: none; }")
+        self.frame = QLabel()
+        self.frame.setFixedHeight(62)
+        self.frame.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        if self.ratio:
+            self.frame.setPixmap(ui.aspect_glyph(self.ratio, accent, 52))
+        else:
+            self.frame.setPixmap(icons.pixmap("bolt", design.BRAND_B, 34))
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(12, 12, 12, 10)
+        lay.setSpacing(2)
+        lay.addWidget(self.frame)
+        lay.addWidget(ui.text(name, "small", wrap=True))
+        places = ", ".join(where[:2]) if isinstance(where, (list, tuple)) else str(where)
+        size = f"{width}×{height} · " if width else ""
+        note = ui.text(f"{size}{places}", "tiny", tone="muted", wrap=True)
+        lay.addWidget(note)
+
+    def mousePressEvent(self, event: Any) -> None:  # noqa: N802
+        self.run()
+
+
 class HomePage(Page):
     key = "home"
 
@@ -112,8 +151,9 @@ class HomePage(Page):
         self.hello = ui.text("", "small", tone="subtle")
         inner.addWidget(self.hello)
         inner.addWidget(ui.text("What will you make today?", "display"))
-        inner.addWidget(ui.text("Posts, pictures, animatics, games and code, made on this machine with ELI beside "
-                                "you. Nothing leaves it.", "body", tone="subtle", wrap=True))
+        inner.addWidget(ui.text("Posts, pictures, films and ads with sound, games and code, made on this machine "
+                                "with ELI beside you. Tell ELI what you want, or choose where to make it.", "body",
+                                tone="subtle", wrap=True))
         inner.addSpacing(10)
         box = QFrame()
         box.setObjectName("quick")
@@ -129,8 +169,9 @@ class HomePage(Page):
         self.quick.setPlaceholderText("A neon city at night… a launch post… a game where you catch stars…")
         design.set_type(self.quick, "h3")
         self.quick.returnPressed.connect(self._go)
-        self.where = ui.Segmented(QUICK, "images", accent=design.BRAND_A)
-        self.where.setFixedWidth(320)
+        self.where = ui.Segmented(QUICK, str(shell.recall("home_where", "eli")), accent=design.BRAND_A)
+        self.where.setFixedWidth(430)
+        self.where.changed.connect(lambda v: shell.remember("home_where", v))
         self.go_button = ui.GlowButton("Create", "sparkles")
         self.go_button.clicked.connect(self._go)
         quick.addWidget(spark)
@@ -139,6 +180,24 @@ class HomePage(Page):
         quick.addWidget(self.go_button)
         inner.addWidget(box)
         lay.addWidget(hero)
+
+        # start from a shape
+        from eli_creation.production.formats import FORMATS
+
+        lay.addLayout(self._section("Start a film or an ad", "In the shape each platform shows best"))
+        shapes_box = QWidget()
+        shapes = FlowLayout(shapes_box, 12)
+        shapes.setContentsMargins(0, 0, 0, 0)
+        for key in FORMAT_KEYS:
+            fmt = FORMATS[key]
+            shapes.addWidget(FormatCard(key, fmt.name, fmt.width, fmt.height, fmt.platforms,
+                                        lambda k=key: self.shell.go("videos", format=k)))
+        shapes.addWidget(FormatCard("ad", "1-click ad", 0, 0, "ELI makes all of it",
+                                    lambda: self.shell.go("videos", ad=True)))
+        policy = shapes_box.sizePolicy()
+        policy.setHeightForWidth(True)
+        shapes_box.setSizePolicy(policy)
+        lay.addWidget(shapes_box)
 
         # the studios
         lay.addLayout(self._section("Studios", "Each says what this machine can make in it now"))
@@ -227,7 +286,8 @@ class HomePage(Page):
         card.add(ui.text("Quicker with the keyboard", "h3"))
         for keys, what in (("Ctrl K", "find a studio, an action or anything made"),
                            ("Ctrl Enter", "create in the studio you are in"),
-                           ("Ctrl 1–9", "open a studio"), ("Ctrl .", "show or hide ELI")):
+                           ("Ctrl 1–9", "open a studio"), ("Ctrl .", "show or hide ELI"),
+                           ("Space", "play or pause a film's preview")):
             row = QHBoxLayout()
             row.addWidget(ui.Badge(ui.shortcut_hint(keys), design.SUBTLE))
             row.addWidget(ui.text(what, "small", tone="muted"), 1)
@@ -250,17 +310,29 @@ class HomePage(Page):
         ok = main.available
         self.main_dot.set(design.GOOD if ok else design.WARN)
         self.main_line.setText(f"Main model: {main.name}" if ok else
-                               f"No main model yet: {main.why_unavailable}. Posts, games and code need one; "
-                               "images, animatics and edits do not.")
+                               f"No main model yet: {main.why_unavailable}. Posts, game design, code and ELI's "
+                               "answers need one; images, films, sound, ready-made games and edits do not.")
 
     def _go(self) -> None:
         words = self.quick.text().strip()
         target = self.where.value()
         if not words:
-            self.shell.go(target, focus=True)
+            if target == "eli":
+                self.shell.ask_eli.setFocus()
+            else:
+                self.shell.go(target, focus=True)
             return
         self.quick.clear()
-        self.shell.go(target, prompt=words, create=True)
+        if target == "eli":
+            self.shell.eli.setVisible(True)
+            self.shell.eli_toggle.setChecked(True)
+            self.shell.eli.ask_now(words)
+        elif target == "videos":
+            self.shell.go("videos", ad={"product": words})
+        elif target == "audio":
+            self.shell.go("audio", mode="voice", text=words)
+        else:
+            self.shell.go(target, prompt=words, create=True)
 
     def on_job(self, job: Job) -> None:
         if job.finished and self.shell.current == "home":
