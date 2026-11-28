@@ -74,8 +74,9 @@ a model you bring yourself has its licence carried onto everything it makes.
 
 ## Licence
 
-An installed copy runs for **seven days from its first use**, then needs a key: an ELI Creation
-Station key, or an ELI v3 key sold with ELI Creation Station included. Keys for other ELI products
+Every copy runs for **seven days from its first use**, then needs a key: installed, packaged or
+run from its source alike. The key is an ELI Creation Station key, or an ELI v3 key sold with ELI
+Creation Station included. Keys for other ELI products
 don't open it. The terms are in [LICENSE](LICENSE).
 
 Creation Station never goes online for its licence. A licence covers a number of computers, each

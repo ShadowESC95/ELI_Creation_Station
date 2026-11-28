@@ -13,7 +13,6 @@ from eli_creation import bundle, licensing
 
 @pytest.fixture()
 def required(home, tmp_path, monkeypatch):
-    monkeypatch.setenv("ELI_CREATION_REQUIRE_LICENCE", "1")
     monkeypatch.setattr(licensing, "_hosted", False)
     monkeypatch.setattr(licensing, "_trial_locations", [tmp_path / "t1", tmp_path / "t2"])
     return tmp_path
@@ -32,6 +31,15 @@ def test_deleting_the_trial_once_used_does_not_restart_it(required, home):
     (home / "projects" / "a").mkdir(parents=True)
     got = licensing.standing(start=True)
     assert not got.granted and "used on this machine before" in got.reason
+
+
+def test_a_copy_run_from_its_source_needs_a_licence_like_any_other(monkeypatch):
+    """A git clone of the repository was a free copy of the product: it never checked a licence."""
+    monkeypatch.setattr(licensing, "_hosted", False)
+    assert (Path(licensing.__file__).resolve().parents[2] / ".git").exists(), "this test runs from the source"
+    assert licensing.required()
+    assert not any("ELI_CREATION_REQUIRE_LICENCE" in line or "_source_checkout" in line
+                   for line in Path(licensing.__file__).read_text(encoding="utf-8").splitlines())
 
 
 def test_hosted_by_an_eli_v3_that_does_not_know_the_product_still_checks_its_own_key(required):
