@@ -150,8 +150,20 @@ jobs:
         run: python scripts/fetch_eli_sdk.py "${{ runner.temp }}/wheels"
         env:
           ELI_SDK_TOKEN: ${{ secrets.ELI_SDK_TOKEN }}
-      # cryptography as a published wheel, which carries its own OpenSSL (ELI Legal 0.8.0).
-      # the lock holds cryptography below 49 on Intel Macs (no wheel from 49; see scripts/lock_dependencies.py)
+      # cryptography as a published wheel, which carries its own OpenSSL (ELI Legal 0.8.0). There is
+      # none for Intel Macs from 49, and 48 has known vulnerabilities (PYSEC-2026-3552, -3553, -3554),
+      # so on Intel it is built here at the locked version with OpenSSL linked into it: it then needs no
+      # libssl of the system's or the bundle's. (A build that linked the system's failed the licence
+      # check inside the app: the bundle's libssl lacked SSL_get0_group_name.)
+      - name: cryptography with OpenSSL inside it (Intel Macs)
+        if: runner.arch == 'X64'
+        run: |
+          brew list openssl@3 >/dev/null 2>&1 || brew install openssl@3
+          CRYPTO=$(grep -E '^cryptography==' requirements.lock.txt | sed -E 's/ *;.*//' | head -1)
+          OPENSSL_DIR="$(brew --prefix openssl@3)" OPENSSL_STATIC=1 python -m pip install --no-binary cryptography "$CRYPTO"
+          lib=$(python -c "import cryptography.hazmat.bindings._rust as r; print(r.__file__)")
+          if otool -L "$lib" | grep -E 'libssl|libcrypto'; then echo "::error::cryptography links a shared OpenSSL"; exit 1; fi
+          python -c "from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey as K; k = K.generate(); k.public_key().verify(k.sign(b'x'), b'x'); print('cryptography signs and verifies')"
       - run: python -m pip install -c requirements.lock.txt -e ".[all,build]" --only-binary cryptography
       - run: python -m pip install -c requirements.lock.txt llama-cpp-python || echo "::warning::llama.cpp did not build"
         env:
@@ -159,6 +171,11 @@ jobs:
       - run: PYTHON=python packaging/macos/build.sh
       - name: The frozen program runs its self-test
         run: '"build/dist/ELI Creation Station.app/Contents/MacOS/eli-creation" selftest'
+      - name: The bundled cryptography carries its own OpenSSL
+        run: |
+          found=$(find "build/dist/ELI Creation Station.app" -name '_rust*.so' | head -1)
+          test -n "$found" && otool -L "$found"
+          if otool -L "$found" | grep -E 'libssl|libcrypto'; then echo "::error::the bundled cryptography links a shared OpenSSL"; exit 1; fi
       - uses: actions/upload-artifact@v4
         with:
           retention-days: 3
