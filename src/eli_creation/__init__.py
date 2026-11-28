@@ -6,6 +6,6 @@ open in place of its window, or that runs on its own with its own licence key. O
 3D, upscaling) is loaded in a worker process of its own when a job needs it, and unloaded again.
 """
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 PRODUCT = "creation"
 TITLE = "ELI Creation Station"
