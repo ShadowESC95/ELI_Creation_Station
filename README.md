@@ -7,7 +7,7 @@ alike, on whatever machine they have.
 It is an official ELI bundle (product id `creation`), like ELI Legal and ELI VR: an application of
 its own that ELI v3 can open in place of its window, or that runs on its own with its own licence.
 
-**Version 0.3.0.** Linux, Windows, macOS.
+**Version 0.3.1.** Linux, Windows, macOS.
 
 ## The studios
 
