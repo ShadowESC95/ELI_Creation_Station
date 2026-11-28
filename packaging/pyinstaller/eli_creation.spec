@@ -29,7 +29,8 @@ for name in ("THIRD_PARTY_NOTICES.md", "LICENSE", "NOTICE", "README.md"):
         datas.append((str(ROOT / name), "."))
 
 hidden = collect_submodules("eli_creation")
-hidden += ["cryptography", "psutil", "PIL", "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets"]
+hidden += ["cryptography", "psutil", "PIL", "PySide6.QtCore", "PySide6.QtGui", "PySide6.QtWidgets",
+           "PySide6.QtNetwork", "PySide6.QtMultimedia"]
 # The catalogue, the edition, the image presets and the icon ship as files beside the sources
 # (collect_data_files above, with include_py_files): a worker in a runtime environment imports
 # eli_creation from them.
@@ -37,7 +38,12 @@ hidden += ["cryptography", "psutil", "PIL", "PySide6.QtCore", "PySide6.QtGui", "
 excluded = [
     # A browser engine is not part of this product; neither is anything used only to develop it.
     "PySide6.QtWebEngineCore", "PySide6.QtWebEngineWidgets", "PySide6.QtWebEngineQuick", "PySide6.QtWebChannel",
-    "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtQuick3D", "PySide6.QtMultimedia", "PySide6.QtPdf", "PySide6.Qt3DCore",
+    "PySide6.QtQml", "PySide6.QtQuick", "PySide6.QtQuick3D", "PySide6.QtPdf", "PySide6.Qt3DCore",
+    # Not used; several are offered only under the GPL in Qt's open-source edition, so none ships.
+    "PySide6.QtGraphs", "PySide6.QtGraphsWidgets", "PySide6.QtVirtualKeyboard", "PySide6.QtNetworkAuth",
+    "PySide6.QtHttpServer", "PySide6.QtQuick3DPhysics", "PySide6.QtSpatialAudio", "PySide6.QtWebView",
+    # A video tool with GPL encoders inside (x264, x265): not part of this product.
+    "av",
     "PySide6.QtCharts", "PySide6.QtDataVisualization", "PySide6.QtBluetooth", "PySide6.QtNfc", "PySide6.QtSensors",
     "PySide6.QtSerialPort", "PySide6.QtPositioning", "PySide6.QtLocation", "PySide6.QtTest", "PySide6.QtSql",
     "tkinter", "pytest", "mypy", "ruff", "IPython", "matplotlib", "PyInstaller",

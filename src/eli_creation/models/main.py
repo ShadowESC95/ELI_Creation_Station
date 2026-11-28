@@ -20,7 +20,9 @@ from __future__ import annotations
 
 import inspect
 import logging
+import os
 import threading
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
@@ -44,6 +46,7 @@ class MainModel:
         self.name = name
         self._why = why
         self._state = "ready" if source in ("eli_v3", "openai") and not why else ("unavailable" if why else "unloaded")
+        self.via = source  # where it comes from: eli_v3, eli_v3_server, gguf, openai, none
         self._error = ""
         self._lock = threading.Lock()
         self._settled = threading.Event()  # set while it is not loading
@@ -186,8 +189,19 @@ def make_main_model(settings: Settings, *, hosted: bool, network: Any = None) ->
     from eli_creation.adapters.inference.local import NullInference, OpenAICompatInference
 
     source = settings.main_model_source
+    found_path = ""
     if source == "auto":
-        source = "eli_v3" if hosted else ("gguf" if settings.main_model_path else "none")
+        if hosted:
+            source = "eli_v3"
+        else:
+            link = _running_eli_v3()
+            if link is not None:
+                return link
+            if settings.main_model_path:
+                source = "gguf"
+            else:
+                found_path = best_local_gguf(settings)
+                source = "gguf" if found_path else "none"
     if source == "eli_v3":
         if not hosted:
             return MainModel(NullInference(), source="none", name="no main model",
@@ -200,7 +214,7 @@ def make_main_model(settings: Settings, *, hosted: bool, network: Any = None) ->
         from eli_creation.adapters.inference.gguf import GgufInference
 
         try:
-            gguf_backend = GgufInference(settings.main_model_path, working_ctx=settings.main_context)
+            gguf_backend = GgufInference(found_path or settings.main_model_path, working_ctx=settings.main_context)
         except Exception as exc:
             return MainModel(NullInference(), source="none", name="no main model", why=str(exc))
         return MainModel(gguf_backend, source="gguf", name=gguf_backend.path.name)
@@ -214,4 +228,84 @@ def make_main_model(settings: Settings, *, hosted: bool, network: Any = None) ->
                              why=f"the model server at {host} cannot be used: {exc}")
         return MainModel(server_backend, source="openai", name=server_backend.model_id)
     return MainModel(NullInference(), source="none", name="no main model",
-                     why="no main model is set: choose a GGUF file or a model server in Settings")
+                     why="no main model yet: start ELI v3 on this machine, or choose a GGUF file or a "
+                         "model server in Settings")
+
+
+def _running_eli_v3() -> MainModel | None:
+    """ELI v3's own model, when its server runs on this machine: the same ELI as everywhere else."""
+    from eli_creation import eli_link
+    from eli_creation.adapters.inference.local import OpenAICompatInference
+
+    link = eli_link.find()
+    if link is None:
+        return None
+    try:
+        names = link.models()
+        backend = OpenAICompatInference(base_url=link.base + "/v1", model=names[0] if names else "eli",
+                                        api_key=link.token or None)
+    except Exception:
+        return None
+    main = MainModel(backend, source="openai", name="ELI v3 on this machine")
+    main.via = "eli_v3_server"
+    return main
+
+
+def best_local_gguf(settings: Settings) -> str:
+    """A chat GGUF already on this machine for ELI to think with: the catalogue's choice for this
+    machine's tier where it is here, otherwise the smallest that leaves the machine room to work."""
+    from eli_creation.adapters.inference.gguf import discover
+
+    hub = Path(os.environ.get("HF_HUB_CACHE") or Path.home() / ".cache" / "huggingface" / "hub")
+    try:
+        found = [m for m in discover(extra=str(hub)) if 1.5e9 < m.size]
+    except OSError:
+        return ""
+    if not found:
+        return ""
+    try:
+        import psutil
+
+        budget = psutil.virtual_memory().available * 0.6
+    except Exception:
+        budget = 8e9
+    named = _named_links(hub)  # the Hugging Face cache keeps files under hashes; their names are links
+    # Only a general assistant model is taken unasked; anything else found (a coder, an
+    # uncensored or special-purpose model) is offered in the models list for the person to choose.
+    for word in GENERAL_MODELS:
+        for model in found:
+            name = named.get(str(model.path), model.path).name.lower()
+            if word in name and model.size < budget and not any(w in name for w in NOT_GENERAL):
+                return str(named.get(str(model.path), model.path))
+    return ""
+
+
+GENERAL_MODELS = ("qwen3-8b", "qwen3-4b", "qwen3-14b", "llama-3.1-8b-instruct", "llama-3.2-3b-instruct",
+                  "qwen2.5-7b-instruct", "mistral-7b-instruct", "gemma-3", "phi-4")
+NOT_GENERAL = ("uncensored", "abliterated", "coder", "offensive", "heretic", "nsfw", "roleplay")
+
+
+def local_ggufs() -> list[tuple[str, float]]:
+    """Every chat GGUF found on this machine (with the Hugging Face cache), by name, in GB."""
+    from eli_creation.adapters.inference.gguf import discover
+
+    hub = Path(os.environ.get("HF_HUB_CACHE") or Path.home() / ".cache" / "huggingface" / "hub")
+    named = _named_links(hub)
+    try:
+        found = discover(extra=str(hub))
+    except OSError:
+        return []
+    return [(str(named.get(str(m.path), m.path)), round(m.size / 1e9, 1)) for m in found if m.size > 1.5e9]
+
+
+def _named_links(hub: Path) -> dict[str, Path]:
+    """Each GGUF in the Hugging Face cache by its real file, to the link that carries its name."""
+    out: dict[str, Path] = {}
+    if not hub.is_dir():
+        return out
+    for link in hub.glob("models--*/snapshots/*/**/*.gguf"):
+        try:
+            out[str(link.resolve())] = link
+        except OSError:
+            continue
+    return out

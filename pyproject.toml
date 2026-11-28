@@ -21,8 +21,12 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Qt for Python under the LGPL: Essentials (Core, GUI, Widgets, Network) and Addons for Qt
+# Multimedia (sound and video, with Qt's LGPL build of FFmpeg). 6.8 brings the frame and sound
+# inputs a film is encoded through. GPL-only add-ons are excluded from installers (see the spec).
 gui = [
-  "PySide6>=6.6",
+  "PySide6-Essentials>=6.8,<7",
+  "PySide6-Addons>=6.8,<7",
 ]
 # Runs a GGUF main model in process with llama.cpp, as ELI v3 and ELI Legal do. It is compiled on
 # install where no prebuilt wheel exists, which needs CMake and a C/C++ compiler.
@@ -31,7 +35,8 @@ gguf = [
 ]
 # What an installed copy ships with.
 all = [
-  "PySide6>=6.6",
+  "PySide6-Essentials>=6.8,<7",
+  "PySide6-Addons>=6.8,<7",
 ]
 dev = [
   "pytest>=8.2,<10",
