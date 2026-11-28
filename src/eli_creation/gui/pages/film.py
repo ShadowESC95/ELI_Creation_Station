@@ -464,7 +464,7 @@ class FilmPage(Page):
         effects = ui.button("Effect", None, icon="bolt")
         fx_menu = QMenu(effects)
         for key, (name, _s, _f, blurb) in sfx_lib.EFFECTS.items():
-            fx_menu.addAction(f"{name} · {blurb}", lambda k=key: self.add_effect(k))
+            fx_menu.addAction(f"{name} · {blurb}", partial(self.add_effect, key))
         effects.setMenu(fx_menu)
         self.zoom = ui.SliderField("Zoom", 10, 200, 60, step=5, fmt="{:.0f} px/s")
         self.zoom.setFixedWidth(220)
