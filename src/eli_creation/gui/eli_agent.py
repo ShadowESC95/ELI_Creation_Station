@@ -65,6 +65,18 @@ SYSTEM = ("You are ELI, the AI inside ELI Creation Station, beside a creator on 
             "concretely from what they said and the project's context.")
 
 
+def actions_for(studio: Any, question: str, context: str, where: str) -> list[dict[str, Any]]:
+    """What to make for a request, with its details filled in by the main model when there is one
+    (blocking). Nothing for a question that asks for nothing to be made."""
+    found = suggest(question)
+    if not found or not studio.main.available:
+        return found
+    try:
+        return list(plan(studio, question, context, where).get("actions") or []) or found
+    except Exception:
+        return found
+
+
 def suggest(question: str) -> list[dict[str, Any]]:
     """Actions a question points to, found without the model (where to go to do it)."""
     text = f" {question.lower()} "
@@ -75,13 +87,18 @@ def suggest(question: str) -> list[dict[str, Any]]:
     return found[:3]
 
 
-def plan(studio: Any, question: str, context: str, where: str) -> dict[str, Any]:
-    """ELI's reply and its proposed actions (blocking: call it off the window's thread)."""
+def plan(studio: Any, question: str, context: str, where: str,
+         history: list[tuple[str, str]] | None = None) -> dict[str, Any]:
+    """ELI's reply and its proposed actions (blocking: call it off the window's thread).
+    ``history``: the conversation so far, oldest first, as (who, words) with who "person" or "ELI"."""
     from eli_creation.engines.writing import parse_json
 
-    raw = studio.main.generate(system=SYSTEM, prompt=f"Project context: {context}\nThey are in: {where}\n\n"
-                                                    f"They say: {question}", max_tokens=900, temperature=0.4,
-                               json_mode=True)
+    said = "".join(f"{'The person' if who == 'person' else 'ELI'}: {words}\n" for who, words in (history or [])[-12:])
+    prompt = (f"Project context: {context}\nThey are in: {where}\n"
+              + (f"\nThe conversation so far (you are ELI; the person is the one using Creation Station):\n{said}"
+                 if said else "")
+              + f"\nThe person now says: {question}")
+    raw = studio.main.generate(system=SYSTEM, prompt=prompt, max_tokens=900, temperature=0.4, json_mode=True)
     try:
         found = parse_json(raw)
     except Exception:

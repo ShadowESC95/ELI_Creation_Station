@@ -405,6 +405,7 @@ class MainWindow(QMainWindow):
         row.addWidget(self.eli)
         self.setCentralWidget(body)
         self.toasts = ui.Toasts(body)
+        self.toasts.right_edge = self._toast_edge
 
         # ── the status line ──
         self.main_dot = ui.StatusDot()
@@ -540,9 +541,14 @@ class MainWindow(QMainWindow):
             self._dock = ModelsDock(self)
         self._dock.show_at(near or self.models_button, above=above)
 
+    def _toast_edge(self) -> int:
+        """Toasts sit to the left of ELI's panel when it is open, never over it."""
+        return self.eli.x() if self.eli.isVisible() else self.toasts.parentWidget().width()  # type: ignore[union-attr]
+
     def _toggle_eli(self) -> None:
         shown = not self.eli.isVisible()
         self.eli.setVisible(shown)
+        QTimer.singleShot(0, self.toasts.place)
         self.eli_toggle.setChecked(shown)
         self.remember("eli_open", shown)
 

@@ -336,3 +336,77 @@ def test_qt_keeps_its_references_to_none(app):
     after = sys.getrefcount(None)
     painter.end()
     assert after > before - 100, f"Qt lost {before - after} references to None in 1000 calls"
+
+
+def test_elis_panel_takes_clicks_and_typing_while_a_toast_shows(window, app):
+    """The toasts once lay as a tall invisible strip over ELI's panel and swallowed every click in it."""
+    window.toast("Something happened", "good")
+    app.processEvents()
+    body = window.centralWidget()
+    for widget in (window.eli.ask, window.eli.level):
+        at = widget.mapTo(body, widget.rect().center())
+        hit = body.childAt(at)
+        assert hit is widget or widget.isAncestorOf(hit), f"{widget!r} is covered by {hit!r}"
+    assert not window.toasts.geometry().intersects(window.eli.geometry()), "a toast never covers ELI's panel"
+    for box in window.toasts.boxes():
+        window.toasts._remove(box)
+    app.processEvents()
+    assert window.toasts.isHidden(), "nothing is left lying over the window"
+
+
+def test_with_eli_v3_running_the_panel_is_elis_own_conversation(window, app, monkeypatch):
+    """ELI v3's /v1/chat: ELI itself, who knows the person and follows the conversation in one session."""
+    import json
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    from eli_creation import eli_link
+    from eli_creation.gui.eli_agent import ActionCard
+    from eli_creation.gui.eli_panel import Bubble
+
+    heard: list[dict] = []
+
+    class FakeEliV3(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def _send(self, payload, code=200):
+            body = json.dumps(payload).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self):  # noqa: N802
+            self._send({"product": "eli_v3"} if self.path == "/api" else {"detail": "no"}, 200 if self.path == "/api" else 404)
+
+        def do_POST(self):  # noqa: N802
+            asked = json.loads(self.rfile.read(int(self.headers["Content-Length"])) or b"{}")
+            if self.path != "/v1/chat":
+                self._send({"detail": "no"}, 404)
+                return
+            heard.append(asked)
+            reply = "You are Jay." if "who am i" in asked["message"].lower() else f"Noted: {asked['message']}"
+            self._send({"response": reply, "session_id": asked["session_id"], "user_id": "default", "timestamp": 0})
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), FakeEliV3)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    monkeypatch.setattr(eli_link, "_ports", lambda: [server.server_address[1]])
+    eli_link.forget()
+    try:
+        def replies():
+            return [b.findChild(type(window.main_chip)).text() for b in window.eli.findChildren(Bubble)]
+
+        window.eli.ask_now("who am I?")
+        settle(app, lambda: "You are Jay." in replies(), seconds=20)
+        window.eli.ask_now("make an image of a red kite for the launch")
+        settle(app, lambda: any("Noted:" in r for r in replies()), seconds=20)
+        assert [h["message"] for h in heard] == ["who am I?", "make an image of a red kite for the launch"]
+        assert len({h["session_id"] for h in heard}) == 1, "one conversation, so ELI follows it"
+        assert [w for w, _ in window.eli.history] == ["person", "ELI", "person", "ELI"]
+        settle(app, lambda: any(c.isVisible() for c in window.eli.findChildren(ActionCard)), seconds=5)
+        assert any(c.isVisible() for c in window.eli.findChildren(ActionCard)), "a request to make something gets its card"
+    finally:
+        server.shutdown()
+        eli_link.forget()

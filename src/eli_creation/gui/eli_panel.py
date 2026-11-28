@@ -8,6 +8,7 @@ at until it is allowed. The level here (off, quiet, helpful, active) is how much
 from __future__ import annotations
 
 import threading
+import uuid
 from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -77,6 +78,8 @@ class EliPanel(QFrame):
         self.studio, self.project = studio, project
         self.folder: Path | None = None
         self.shell: MainWindow | None = None  # set by the window: what ELI's action cards act on
+        self.history: list[tuple[str, str]] = []  # the conversation here, oldest first: (person | ELI, words)
+        self.session = f"creation-station-{uuid.uuid4().hex[:10]}"  # this window's session with ELI v3
         self.where: Callable[[], str] | None = None  # which studio the person is in
         self._said = _Said()
         self._said.said.connect(self._show)
@@ -227,6 +230,7 @@ class EliPanel(QFrame):
         self._ask()
 
     def _ask(self) -> None:
+        from eli_creation import eli_link
         from eli_creation.gui import eli_agent
 
         question = self.ask.text().strip()
@@ -234,7 +238,8 @@ class EliPanel(QFrame):
             return
         self.ask.clear()
         self._bubble(question, mine=True)
-        if not self.studio.main.available:
+        link = eli_link.find()
+        if link is None and not self.studio.main.available:
             found = eli_agent.suggest(question)
             self._bubble(f"I need the main model to answer: {self.studio.main.why_unavailable}."
                          + (" Meanwhile, this is where it is done:" if found else " Choose one in Settings."),
@@ -244,11 +249,26 @@ class EliPanel(QFrame):
         thinking = self._bubble("Thinking…", mine=False)
         project = self.project.text().strip()
         where = self.where() if self.where is not None else ""
+        history = list(self.history)
+        self.history.append(("person", question))
+        session = self.session
 
         def work() -> None:
             try:
-                ctx = self.studio.companion.context(project, self.folder)
-                self._said.said.emit(("agent", thinking, eli_agent.plan(self.studio, question, str(ctx), where)))
+                ctx = str(self.studio.companion.context(project, self.folder))
+                result: dict[str, Any] | None = None
+                if link is not None:
+                    # ELI itself, in the owner's own conversation: it knows who it is talking to,
+                    # remembers, and follows this session; the cards come from the request
+                    try:
+                        result = {"reply": link.chat(question, session),
+                                  "actions": eli_agent.actions_for(self.studio, question, ctx, where)}
+                    except Exception:
+                        if not self.studio.main.available:
+                            raise
+                if result is None:
+                    result = eli_agent.plan(self.studio, question, ctx, where, history)
+                self._said.said.emit(("agent", thinking, result))
             except Exception as exc:
                 self._said.said.emit(("answer", thinking, f"I could not answer: {exc}"))
 
@@ -286,6 +306,9 @@ class EliPanel(QFrame):
             self.state.setText(f"ELI could not look: {raised}")
         elif isinstance(raised, tuple) and raised[0] == "agent":
             reply = raised[2]
+            if reply.get("reply"):
+                self.history.append(("ELI", str(reply["reply"])))
+                del self.history[:-40]
             try:
                 raised[1].findChild(QLabel).setText(reply.get("reply") or "Here is what I would make:")
             except (AttributeError, RuntimeError):

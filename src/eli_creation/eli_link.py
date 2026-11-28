@@ -4,7 +4,11 @@ When ELI v3's server runs on this computer it says where, in ``server.json`` in 
 (``eli/runtime/server_util.announce_port``), and answers on loopback without a token. Creation
 Station then reaches the same ELI the person talks to everywhere else:
 
-- its **main model**, through the OpenAI-compatible ``/v1/chat/completions``;
+- **ELI itself**, through ``/v1/chat``: a turn of the owner's own conversation with ELI, in a
+  Creation Station session, so ELI answers as itself, knows who it is talking to and follows the
+  conversation (the web chat, the phone, ELI VR and the desktop are the same person to ELI v3);
+- its **main model**, through the OpenAI-compatible ``/v1/chat/completions``, for the studios' own
+  work (planning a film, writing a post): a model call, never stored as something the owner said;
 - its **voices** (Kokoro and the others it has), through ``/v1/voice/voices`` and ``/v1/voice/tts``;
 - its **ears** (local faster-whisper), through ``/v1/voice/stt``, to caption a recording.
 
@@ -87,6 +91,13 @@ class EliV3:
         if not isinstance(found, dict) or not found.get("ok"):
             return [], ""
         return [str(v) for v in found.get("voices", [])], str(found.get("active") or "")
+
+    def chat(self, message: str, session_id: str, *, timeout: float = 600.0) -> str:
+        """ELI's own reply to the owner, as a turn of their conversation (``/v1/chat``)."""
+        found = self.json("/v1/chat", {"message": message, "session_id": session_id}, timeout=timeout)
+        if not isinstance(found, dict) or "response" not in found:
+            raise RuntimeError("ELI v3 did not answer")
+        return str(found.get("response") or "").strip()
 
     def speak(self, text: str, voice: str = "", *, timeout: float = 300.0) -> bytes:
         """A WAV of ``text`` in one of ELI v3's voices."""

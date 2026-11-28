@@ -878,28 +878,47 @@ class Backdrop(QWidget):
 class Toasts(QWidget):
     """Short notes that rise in the window's corner and leave by themselves."""
 
+    WIDTH = 380
+
     def __init__(self, parent: QWidget) -> None:
         super().__init__(parent)
-        self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
         self._stack = QVBoxLayout(self)
         self._stack.setContentsMargins(0, 0, 0, 0)
         self._stack.setSpacing(10)
-        self._stack.addStretch(1)
         self.history: list[str] = []
+        # where the toasts' right edge is (the window sets it to the left of ELI's panel), so they
+        # never cover what the person is typing into
+        self.right_edge: Callable[[], int] | None = None
         parent.installEventFilter(self)
-        self._place()
+        self.hide()
 
     def eventFilter(self, watched: Any, event: Any) -> bool:  # noqa: N802
         if watched is self.parent() and event.type() == event.Type.Resize:
-            self._place()
+            self.place()
         return False
 
-    def _place(self) -> None:
+    def boxes(self) -> list[QWidget]:
+        found = []
+        for i in range(self._stack.count()):
+            item = self._stack.itemAt(i)
+            widget = item.widget() if item is not None else None
+            if widget is not None and not widget.isHidden():
+                found.append(widget)
+        return found
+
+    def place(self) -> None:
+        """Exactly as big as the toasts shown (it takes the clicks where it lies), in the bottom
+        corner beside ELI's panel; hidden when there are none."""
         parent = self.parentWidget()
         if parent is None:
             return
-        width = 380
-        self.setGeometry(parent.width() - width - 24, 80, width, parent.height() - 120)
+        if not self.boxes():
+            self.hide()
+            return
+        right = self.right_edge() if self.right_edge is not None else parent.width()
+        height = min(self._stack.sizeHint().height(), max(80, parent.height() - 140))
+        self.setGeometry(max(0, right - self.WIDTH - 24), parent.height() - height - 24, self.WIDTH, height)
+        self.show()
         self.raise_()
 
     def show_toast(self, message: str, kind: str = "info", *, action: tuple[str, Callable[[], Any]] | None = None,
@@ -924,8 +943,8 @@ class Toasts(QWidget):
         row.addWidget(close, 0, Qt.AlignmentFlag.AlignTop)
         self._stack.addWidget(box)
         self.history.append(message)
-        self.show()
-        self.raise_()
+        self._stack.activate()
+        self.place()
         fade_in(box)
         QTimer.singleShot(ms, lambda: self._remove(box))
         return box
@@ -933,9 +952,12 @@ class Toasts(QWidget):
     def _remove(self, box: QFrame) -> None:
         try:
             box.hide()
+            self._stack.removeWidget(box)
             box.deleteLater()
         except RuntimeError:  # already gone
-            pass
+            return
+        self._stack.activate()
+        self.place()
 
 
 def shortcut_hint(keys: str) -> str:
