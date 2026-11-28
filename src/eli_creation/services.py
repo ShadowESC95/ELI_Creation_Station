@@ -72,9 +72,20 @@ class Studio:
         self.ledger = ProvenanceLedger(self.layout)
         self.library = Library(self.layout, self.ledger)
         self.queue = JobQueue(self._run)
+        self._told_eli: set[str] = set()
+        self.queue.on_change(self._tell_eli)
         self.companion = Companion(self)
 
     # ── models ────────────────────────────────────────────────────────────
+    def _tell_eli(self, job: Any) -> None:
+        """When ELI v3 runs on this machine, tell it what was made (once a job; eli_share.py)."""
+        if not job.finished or job.id in self._told_eli:
+            return
+        self._told_eli.add(job.id)
+        from eli_creation import eli_share
+
+        eli_share.work(self, job)
+
     def model_dir(self, spec: ModelSpec) -> Path:
         return folders.model_dir(self.layout.models, spec.id, spec.tasks[0] if spec.tasks else "other")
 

@@ -179,3 +179,53 @@ def test_edits_give_a_look_words_a_logo_and_a_border(studio: Studio, tmp_path: P
         assert rgb.getpixel((2, 2)) == (255, 255, 255)
         red = rgb.getpixel((15 + 400 - 12 - 40, 15 + 300 - 12 - 40))
         assert red[0] > 200 and red[1] < 60, "the logo sits in its corner"
+
+
+def test_what_is_made_is_told_to_eli_v3_when_it_runs_here_and_never_when_switched_off(studio: Studio, monkeypatch):
+    import json
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+    from eli_creation import eli_link, eli_share
+
+    heard: list[dict] = []
+
+    class FakeEliV3(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def _send(self, payload, code=200):
+            body = json.dumps(payload).encode()
+            self.send_response(code)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def do_GET(self):  # noqa: N802
+            self._send({"product": "eli_v3"})
+
+        def do_POST(self):  # noqa: N802
+            heard.append({"path": self.path, **json.loads(self.rfile.read(int(self.headers["Content-Length"])))})
+            self._send({"ok": True, "id": len(heard)})
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), FakeEliV3)
+    threading.Thread(target=server.serve_forever, daemon=True).start()
+    monkeypatch.setattr(eli_link, "_ports", lambda: [server.server_address[1]])
+    sent = threading.Event()
+    real = eli_share._send
+    monkeypatch.setattr(eli_share, "_send", lambda payload: (real(payload), sent.set()))
+    eli_link.forget()
+    try:
+        job = studio.queue.wait(studio.submit("audio.sfx", {"effect": "whoosh", "project": "Northwind"}))
+        assert job.state == "done" and sent.wait(10)
+        assert len(heard) == 1 and heard[0]["path"] == "/v1/bundles/creation/shared"
+        assert heard[0]["category"] == "work" and "Northwind" in heard[0]["text"]
+        assert heard[0]["refs"]["paths"] == [str(job.assets[0].path)]
+        studio.settings.share_with_eli_v3 = False
+        sent.clear()
+        studio.queue.wait(studio.submit("audio.sfx", {"effect": "pop"}))
+        assert not sent.wait(1) and len(heard) == 1, "switched off: ELI v3 is told nothing"
+    finally:
+        server.shutdown()
+        eli_link.forget()

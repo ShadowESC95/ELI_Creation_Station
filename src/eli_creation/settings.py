@@ -55,6 +55,9 @@ class Settings:
     companion_read_screen: bool = False
     # The least time between two things ELI raises unasked, in minutes.
     companion_min_gap_minutes: int = 20
+    # When ELI v3 runs on this machine, tell it what is made here and keep the brand kits there,
+    # so ELI knows them everywhere (eli_share.py). Off: ELI v3 is told nothing.
+    share_with_eli_v3: bool = True
     theme: str = "dark"
     last_tab: str = "socials"
 

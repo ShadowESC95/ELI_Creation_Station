@@ -677,5 +677,12 @@ class BrandPanel(QWidget):
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(asdict(self.brand()), indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         self.saved.emit()
+        from eli_creation import eli_share
+
+        brand = self.brand()
+        project = self.shell.project_name() or "Studio"
+        eli_share.preference(self.shell.studio, f"brand:{project.lower()}", f"Brand kit: {brand.name or project}",
+                             f"Voice: {brand.voice or '-'}. Colours: {', '.join(brand.colours)}. Hashtags: "
+                             f"{' '.join(brand.hashtags) or '-'}. Website: {brand.website or '-'}.")
         self.shell.toast("The brand kit is saved", "good")
 

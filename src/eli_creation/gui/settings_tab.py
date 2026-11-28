@@ -180,6 +180,9 @@ class SettingsTab(QWidget):
         self.watch.setChecked(s.companion_watch_project)
         self.read_screen_box = QCheckBox("Read the screen when ELI looks (on this machine only, never kept)")
         self.read_screen_box.setChecked(s.companion_read_screen)
+        self.share_box = QCheckBox("Tell ELI v3 what I make here and keep my brand kits there, so ELI knows them "
+                                   "everywhere (only when ELI v3 runs on this machine; ELI v3 can forget them)")
+        self.share_box.setChecked(s.share_with_eli_v3)
         self.gap = QSpinBox()
         self.gap.setRange(1, 240)
         self.gap.setSuffix(" min")
@@ -189,6 +192,7 @@ class SettingsTab(QWidget):
         f.addRow("ELI", self.level)
         f.addRow("", self.watch)
         f.addRow("", self.read_screen_box)
+        f.addRow("", self.share_box)
         f.addRow("At most one thing unasked every", self.gap)
         f.addRow("", button("Apply", self._apply_eli))
         return card("ELI in the studio", form)
@@ -198,6 +202,7 @@ class SettingsTab(QWidget):
         s.companion_level = str(self.level.currentData())
         s.companion_watch_project, s.companion_read_screen = self.watch.isChecked(), self.read_screen_box.isChecked()
         s.companion_min_gap_minutes = self.gap.value()
+        s.share_with_eli_v3 = self.share_box.isChecked()
         self.studio.save_settings()
 
     # ── outputs, licence, about ───────────────────────────────────────────

@@ -38,6 +38,12 @@ thing is made and takes you there. The models dock (the chip in the top bar, or 
 ELI's main model, which stays loaded, and every specialist the studios load when a job needs one and
 let go of when idle, with the means to let go of any of them at once.
 
+**What ELI v3 learns from here.** Creation Station runs on its own. When ELI v3 runs on the same
+machine, it tells ELI v3 what you make (what, in which studio, for which project) and keeps your
+brand kits there, in a database of Creation Station's own inside ELI v3, so ELI knows them wherever
+you talk to it ("what did I make yesterday?"). Settings → ELI turns it off; ELI v3 can forget any of
+it. Nothing leaves the machine.
+
 **ELI beside the studios.** With your permission ELI follows the project you are working on (its folder,
 and the screen if you allow it), notices what matters (a platform's limit, a licence warning on an
 asset, a look or a voice drifting), offers it, and can ask to pause and talk the project through. You
