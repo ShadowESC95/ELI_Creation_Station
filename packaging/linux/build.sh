@@ -67,7 +67,7 @@ Priority: optional
 Architecture: $DEB_ARCH
 Maintainer: $MAINTAINER
 Installed-Size: $(du -sk "$DEB" | cut -f1)
-Depends: libc6 (>= ${GLIBC:-2.31}), libstdc++6, libgcc-s1, libgl1, libegl1, libxkbcommon0, libfontconfig1, libdbus-1-3, libxcb-cursor0
+Depends: libc6 (>= ${GLIBC:-2.31}), libstdc++6, libgcc-s1, libgl1, libegl1, libxkbcommon0, libfontconfig1, libdbus-1-3, libxcb-cursor0, libpulse0
 Description: A local studio for platform content, images, video, games and code
  ELI Creation Station makes posts, images, videos, games and code on this
  machine, with ELI beside you on the project. Every output's models and

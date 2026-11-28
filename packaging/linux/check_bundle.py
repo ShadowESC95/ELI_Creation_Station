@@ -101,6 +101,11 @@ def splits(root: str) -> list[str]:
 # carried them and no graphics pack could start: "GLIBCXX_3.4.32 not found".
 MACHINES_OWN = ("libstdc++.so.6", "libgcc_s.so.1")
 
+# The PulseAudio client Qt Multimedia speaks to the machine's sound through: it must be the one
+# that matches the machine's own sound server (PulseAudio, or PipeWire's stand-in for it), never
+# a copy from the build machine. The .deb depends on it; every desktop Linux has it.
+MACHINES_OWN += ("libpulse.so.0", "libpulse-simple.so.0")
+
 
 # Qt plug-ins that bring GTK and GLib's I/O library into the process. Each of those then loads
 # its own plug-ins from the user's system (input methods, gvfs, dconf), which are built for the

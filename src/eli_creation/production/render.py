@@ -29,6 +29,19 @@ class RenderError(RuntimeError):
     pass
 
 
+def multimedia() -> tuple[bool, str]:
+    """Whether Qt Multimedia (sound and video) can run on this machine, and if not, why."""
+    try:
+        import PySide6.QtMultimedia  # noqa: F401
+    except ImportError as exc:
+        missing = str(exc).split(":")[0]
+        if "libpulse" in str(exc):
+            return False, ("sound and video need the computer's sound library (libpulse, from PulseAudio or "
+                           "PipeWire): install the package libpulse0, or your system's equivalent")
+        return False, f"Qt Multimedia cannot start here ({missing})"
+    return True, ""
+
+
 def soundtrack(project: Project, length: float | None = None) -> np.ndarray:
     """Every clip of the film mixed onto one stereo track, music ducked under the narration."""
     total = length if length is not None else project.length()
@@ -42,6 +55,9 @@ def export(project: Project, target: Path, *, fps: int = 24, longest: int = 1920
     """Write ``project`` to ``target`` (.mp4). Returns the path and the video codec used."""
     from PySide6.QtCore import QCoreApplication
 
+    available, why = multimedia()
+    if not available:
+        raise RenderError(why)
     if QCoreApplication.instance() is None:
         raise RenderError("a film is written from the window or the command line (Qt is not running)")
     if not project.scenes:

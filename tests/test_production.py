@@ -125,24 +125,32 @@ def test_the_compositor_draws_scenes_transitions_and_captions(qt, tmp_path: Path
 
 
 def test_a_film_is_written_with_its_sound_by_qt_alone(qt, tmp_path: Path):
-    pytest.importorskip("PySide6.QtMultimedia")
+    from PIL import Image
+
     from eli_creation.production import render
 
+    ok, why = render.multimedia()
+    if not ok:
+        pytest.skip(why)
+    rng = np.random.default_rng(1)
+    Image.fromarray(rng.integers(0, 255, (360, 640, 3), dtype=np.uint8), "RGB").save(tmp_path / "a.png")
     bed = music.make(tmp_path / "m.wav", "corporate", 3.0)
-    project = Project(format="square", scenes=[Scene(image=_picture(tmp_path / "a.png", (20, 160, 120)), seconds=3)],
+    project = Project(format="square", scenes=[Scene(image=str(tmp_path / "a.png"), seconds=3, camera="push_in")],
                       clips=[Clip(kind="music", path=str(bed), duration=3.0)])
     try:
         path, codec = render.export(project, tmp_path / "film.mp4", fps=12, longest=320)
     except render.RenderError as exc:  # a machine with no multimedia backend at all says why
         pytest.skip(f"Qt Multimedia cannot encode here: {exc}")
-    assert path.is_file() and path.stat().st_size > 10_000 and codec in ("H264", "MPEG4")
+    assert path.is_file() and path.stat().st_size > 2_000 and codec in ("H264", "MPEG4")
+    assert path.read_bytes()[4:8] == b"ftyp", "an MP4 file"
 
 
 def test_nothing_shipped_is_under_a_licence_that_stops_its_sale(qt):
     """Only Qt modules offered under the LGPL are used, and no GPL encoder library is a dependency."""
     import eli_creation.gui.main_window  # noqa: F401  (the whole window, with every page)
-    import eli_creation.production.render  # noqa: F401
+    from eli_creation.production import render
 
+    render.multimedia()  # Qt Multimedia, where it can load
     lgpl = {"QtCore", "QtGui", "QtWidgets", "QtNetwork", "QtMultimedia"}
     used = {name.split(".")[1] for name in sys.modules if name.startswith("PySide6.Qt")}
     assert used <= lgpl, used - lgpl

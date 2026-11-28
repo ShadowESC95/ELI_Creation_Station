@@ -90,7 +90,8 @@ a = Analysis(
 # bundled no pack could place a layer on a card ("GLIBCXX_3.4.32 not found"). Every system has
 # both libraries, and never older than its C library, which the installer already checks.
 if sys.platform.startswith("linux"):
-    a.binaries = [b for b in a.binaries if Path(b[0]).name not in ("libstdc++.so.6", "libgcc_s.so.1")]
+    a.binaries = [b for b in a.binaries if Path(b[0]).name not in ("libstdc++.so.6", "libgcc_s.so.1")
+                  and not Path(b[0]).name.startswith(("libpulse", "libpulsecommon"))]
 
 pyz = PYZ(a.pure)
 
