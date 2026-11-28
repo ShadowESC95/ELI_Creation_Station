@@ -19,6 +19,7 @@ Python (PySide6 6.11 below 3.12, 6.12 from it) the lock says so with a marker.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -45,7 +46,11 @@ HOLD = (
     f"cryptography<49 ; {INTEL_MAC}",
 )
 # Kept at or above a version everywhere it can be, each with its reason.
+# llama.cpp for Python at the version the graphics packs are built at (packaging/gpu_packs.json):
+# two versions' libraries in one process crash.
+PACKS = json.loads((ROOT / "packaging" / "gpu_packs.json").read_text(encoding="utf-8"))["llama_cpp_python"]
 FLOOR = (
+    f"llama-cpp-python=={PACKS}",
     # 49 and 50 fix PYSEC-2026-3552, -3553 and -3554; without this floor the one version that
     # suits Intel Macs too (48) would be chosen for every system, and the release audit refuses it.
     "cryptography>=50 ; sys_platform != 'darwin' or platform_machine != 'x86_64'",

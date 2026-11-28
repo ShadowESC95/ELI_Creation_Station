@@ -28,3 +28,5 @@ build/
 
 # Notes kept only on this machine
 private/
+# graphics packs fetched at build time (scripts/fetch_gpu_pack.py)
+packaging/gpu-packs/

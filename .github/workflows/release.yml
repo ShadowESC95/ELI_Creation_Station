@@ -38,11 +38,15 @@ jobs:
         env:
           ELI_SDK_TOKEN: ${{ secrets.ELI_SDK_TOKEN }}
       - run: python -m pip install -c requirements.lock.txt -e ".[all,build]"
-      # GGUF main models in process. Built for any x86-64 processor, not just this runner's, and
+      # GGUF main models in process, at the version the graphics packs are built at (two versions'
+      # libraries cannot share a process). Built for any x86-64 processor, not just this runner's, and
       # left out (with a note in the build log) if it will not build here.
       - run: python -m pip install -c requirements.lock.txt llama-cpp-python || echo "::warning::llama.cpp did not build; this installer will not run a GGUF main model in process"
         env:
           CMAKE_ARGS: "-DGGML_NATIVE=OFF"
+      # The graphics pack for any maker's card (Vulkan), checked against its SHA-256, shipped inside
+      # the installer: an installed copy makes no connection for it.
+      - run: python scripts/fetch_gpu_pack.py
       - run: python scripts/check_release.py --check
       - run: PYTHON=python packaging/linux/build.sh
       # What the installers are built from, as a CycloneDX bill of materials published with the
@@ -106,6 +110,7 @@ jobs:
         shell: pwsh
         env:
           CMAKE_ARGS: "-DGGML_NATIVE=OFF"
+      - run: python scripts/fetch_gpu_pack.py
       - run: powershell -ExecutionPolicy Bypass -File packaging\windows\build.ps1
         env:
           PYTHON: python

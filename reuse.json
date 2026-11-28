@@ -234,6 +234,14 @@
         [
           "src/eli_legal/security/supply_chain.py",
           "src/eli_creation/security/supply_chain.py"
+        ],
+        [
+          "scripts/fetch_gpu_pack.py",
+          "scripts/fetch_gpu_pack.py"
+        ],
+        [
+          "packaging/gpu_packs.json",
+          "packaging/gpu_packs.json"
         ]
       ]
     },

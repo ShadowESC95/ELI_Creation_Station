@@ -71,6 +71,14 @@
     "source_sha256": "4f8421b12c90ca8cc5cd60ab9ecf34f4b1c1ceba760bfc84e615702413ce636d",
     "dest_sha256": "176f5584c1817b31fb53d86b2d4a1c2b580f9776c47fba667f608bc6c09dbe97"
   },
+  "packaging/gpu_packs.json": {
+    "from": "ELI_Legal",
+    "src": "packaging/gpu_packs.json",
+    "mode": "copy",
+    "commit": "2a1a34b4d0",
+    "source_sha256": "68a2caba279ef053c48ce1cc54d7a7226ebdcdb36458c60e943ac263342322c9",
+    "dest_sha256": "68a2caba279ef053c48ce1cc54d7a7226ebdcdb36458c60e943ac263342322c9"
+  },
   "packaging/linux/AppRun": {
     "from": "ELI_Legal",
     "src": "packaging/linux/AppRun",
@@ -190,6 +198,14 @@
     "commit": "2abede02bc",
     "source_sha256": "0624c07e54c4ea4bf84e8cbebd9d6b0b7a9bca1699381672e79379aa77f2f467",
     "dest_sha256": "6896b6daa8ba6d2a30a9c100ac434f1d29c886f14616436fcb75a47fa0714d64"
+  },
+  "scripts/fetch_gpu_pack.py": {
+    "from": "ELI_Legal",
+    "src": "scripts/fetch_gpu_pack.py",
+    "mode": "copy",
+    "commit": "2a1a34b4d0",
+    "source_sha256": "ecdea3e43b620effb004346197782704fcbe431519ffc01b1da23d6e66ab0053",
+    "dest_sha256": "89c969c61d0b389f726a919066b63c763a87f38be9f0efc92d503d8816418802"
   },
   "scripts/third_party_notices.py": {
     "from": "ELI_Legal",

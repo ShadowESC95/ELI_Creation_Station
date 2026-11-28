@@ -1,0 +1,18 @@
+{
+  "llama_cpp_python": "0.3.35",
+  "source": "https://github.com/ShadowESC95/ELI_v2.0/releases/download/gpu-packs",
+  "shipped": {
+    "linux-x86_64": {
+      "file": "vulkan-llama_cpp_python-0.3.35-py3-none-linux_x86_64.whl",
+      "sha256": "357ad088f3463add979156851d1e2e6d01c6e6c598b62f46042d177f37986ccf"
+    },
+    "windows-amd64": {
+      "file": "vulkan-llama_cpp_python-0.3.35-py3-none-win_amd64.whl",
+      "sha256": "3806d70a1f90910dbdaf790775d9be7ecc935ee36c0bda0e9f0d4a3db3c1f6ad"
+    }
+  },
+  "others": {
+    "cuda-llama_cpp_python-0.3.35-py3-none-linux_x86_64.whl": "c59d5366af22f693f6c081a591055f13fc879a619df468be48f87f227934b353",
+    "cuda-llama_cpp_python-0.3.35-py3-none-win_amd64.whl": "a53c9b6e386de34db5b44f10fcd50639f11ec6aad5d08ac7f5b0f864a0196376"
+  }
+}
