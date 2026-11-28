@@ -31,7 +31,9 @@ jobs:
         run: python scripts/fetch_eli_sdk.py "${{ runner.temp }}/wheels"
         env:
           ELI_SDK_TOKEN: ${{ secrets.ELI_SDK_TOKEN }}
-      - run: python -m pip install -e ".[dev,all]"
+      # every package at the version in requirements.lock.txt: a new upstream release changes nothing here
+      - run: python -m pip install -c requirements.lock.txt -e ".[dev,all]"
+      - run: python scripts/lock_dependencies.py --check
       - run: python -m pytest
         env:
           QT_QPA_PLATFORM: offscreen

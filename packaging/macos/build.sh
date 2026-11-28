@@ -12,7 +12,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$ROOT"
 if [ -n "${PYTHON:-}" ]; then PY="$PYTHON"; elif [ -x .venv/bin/python ]; then PY=.venv/bin/python; else PY=python3; fi
-"$PY" -m pip install --quiet -e ".[all,build]"
+"$PY" -m pip install --quiet -c requirements.lock.txt -e ".[all,build]"
 VERSION="$("$PY" -c 'import eli_creation; print(eli_creation.__version__)')"
 ARCH="$(uname -m)"
 OUT="dist/installers"
