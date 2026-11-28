@@ -697,6 +697,9 @@ class MainWindow(QMainWindow):
                                                      or "none loaded"))
 
     def closeEvent(self, event: Any) -> None:  # noqa: N802
+        from eli_creation.gui import sound
+
+        sound.release_all()
         self.studio.save_settings()
         self.studio.close()
         super().closeEvent(event)

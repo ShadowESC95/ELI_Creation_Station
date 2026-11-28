@@ -5,6 +5,7 @@ read as each platform shows them, the library's filters, the viewer, and every i
 
 from __future__ import annotations
 
+import sys
 import time
 from dataclasses import replace
 from pathlib import Path
@@ -316,3 +317,22 @@ def test_a_gallery_on_a_page_grows_to_show_every_tile(window, app):
     columns = gallery.columns()
     rows = -(-9 // columns)
     assert gallery.height() == rows * gallery.cell_size().height() + 8
+
+
+@pytest.mark.skipif(sys.version_info >= (3, 12), reason="from Python 3.12 None is immortal: a lost reference is harmless")
+def test_qt_keeps_its_references_to_none(app):
+    """PySide6 6.12.0 drops a reference to None on each call to a Qt method that returns nothing, under
+    Python 3.10 and 3.11; a window that paints long enough then aborts ("deallocating None").
+    pyproject keeps that version off those Pythons; this finds any other that does the same."""
+    from PySide6.QtCore import QLineF
+    from PySide6.QtGui import QColor, QImage, QPainter
+
+    image = QImage(64, 64, QImage.Format.Format_ARGB32)
+    painter = QPainter(image)
+    before = sys.getrefcount(None)
+    for _ in range(500):
+        painter.drawLine(QLineF(0, 0, 10, 10))
+        painter.setPen(QColor(1, 2, 3))
+    after = sys.getrefcount(None)
+    painter.end()
+    assert after > before - 100, f"Qt lost {before - after} references to None in 1000 calls"

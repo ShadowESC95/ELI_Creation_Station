@@ -13,6 +13,7 @@ from typing import Any
 from PySide6.QtCore import (
     Property,
     QEasingCurve,
+    QLineF,
     QPointF,
     QPropertyAnimation,
     QRectF,
@@ -867,14 +868,9 @@ class Backdrop(QWidget):
             g.setColorAt(1.0, c1)
             p.fillRect(r, g)
         p.setPen(QPen(QColor(34, 211, 238, 12), 1))
-        x = 0
-        while x < r.width():
-            p.drawLine(int(x), 0, int(x), int(r.height()))
-            x += self.GRID
-        y = 0
-        while y < r.height():
-            p.drawLine(0, int(y), int(r.width()), int(y))
-            y += self.GRID
+        lines = [QLineF(x, 0.0, x, r.height()) for x in range(0, int(r.width()) + 1, self.GRID)]
+        lines += [QLineF(0.0, y, r.width(), y) for y in range(0, int(r.height()) + 1, self.GRID)]
+        p.drawLines(lines)  # one call for the whole grid, not one a line
         p.end()
 
 

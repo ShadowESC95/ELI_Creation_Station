@@ -266,7 +266,7 @@ class FilmPage(Page):
         self.project: Project | None = None
         self.scene_id = ""
         self.jobs: dict[str, tuple[str, dict[str, Any]]] = {}  # job id: (purpose, details)
-        self.sound = Sound()
+        self.sound = Sound(self)
         self._saver = QTimer(self)
         self._saver.setSingleShot(True)
         self._saver.setInterval(500)
